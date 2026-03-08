@@ -1,118 +1,100 @@
-# OneDrive Routing Reference
+# OneDrive Action Reference
 
-**App name:** `one-drive`
-**Base URL proxied:** `graph.microsoft.com`
+**Provider:** `microsoft`
+**Service:** `onedrive`
+**App name:** `microsoft-onedrive`
 
-## API Path Pattern
+## Actions
 
-```
-/one-drive/v1.0/me/drive/{resource}
-```
+### list_files
 
-## Common Endpoints
+List files in a folder.
 
-### Get User's Drive
 ```bash
-GET /one-drive/v1.0/me/drive
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "microsoft",
+    "service": "onedrive",
+    "action": "list_files",
+    "params": {"folder_path": "/Documents", "top": 20}
+  }'
 ```
 
-### List Drives
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `folder_path` | string | no | Folder path (default: root). Use format like `/Documents/Reports` |
+| `top` | integer | no | Number of items to return (default 20) |
+
+### search_files
+
+Search files in OneDrive.
+
 ```bash
-GET /one-drive/v1.0/me/drives
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "microsoft",
+    "service": "onedrive",
+    "action": "search_files",
+    "params": {"query": "quarterly report", "top": 10}
+  }'
 ```
 
-### Get Drive Root
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | string | yes | Search query |
+| `top` | integer | no | Max results (default 20) |
+
+### get_file
+
+Get file metadata.
+
 ```bash
-GET /one-drive/v1.0/me/drive/root
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "microsoft",
+    "service": "onedrive",
+    "action": "get_file",
+    "params": {"item_id": "ITEM_ID"}
+  }'
 ```
 
-### List Root Children
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `item_id` | string | yes | Item ID (file or folder) |
+
+### create_folder
+
+Create a new folder.
+
 ```bash
-GET /one-drive/v1.0/me/drive/root/children
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "microsoft",
+    "service": "onedrive",
+    "action": "create_folder",
+    "params": {"name": "Project Files", "parent_path": "/Documents"}
+  }'
 ```
 
-### Get Item by ID
-```bash
-GET /one-drive/v1.0/me/drive/items/{item-id}
-```
-
-### Get Item by Path
-```bash
-GET /one-drive/v1.0/me/drive/root:/Documents/file.txt
-```
-
-### List Folder Children by Path
-```bash
-GET /one-drive/v1.0/me/drive/root:/Documents:/children
-```
-
-### Create Folder
-```bash
-POST /one-drive/v1.0/me/drive/root/children
-Content-Type: application/json
-
-{
-  "name": "New Folder",
-  "folder": {}
-}
-```
-
-### Upload File (Simple - up to 4MB)
-```bash
-PUT /one-drive/v1.0/me/drive/root:/filename.txt:/content
-Content-Type: text/plain
-
-{file content}
-```
-
-### Delete Item
-```bash
-DELETE /one-drive/v1.0/me/drive/items/{item-id}
-```
-
-### Create Sharing Link
-```bash
-POST /one-drive/v1.0/me/drive/items/{item-id}/createLink
-Content-Type: application/json
-
-{
-  "type": "view",
-  "scope": "anonymous"
-}
-```
-
-### Search Files
-```bash
-GET /one-drive/v1.0/me/drive/root/search(q='query')
-```
-
-### Special Folders
-```bash
-GET /one-drive/v1.0/me/drive/special/documents
-GET /one-drive/v1.0/me/drive/special/photos
-```
-
-### Recent Files
-```bash
-GET /one-drive/v1.0/me/drive/recent
-```
-
-### Shared With Me
-```bash
-GET /one-drive/v1.0/me/drive/sharedWithMe
-```
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `name` | string | yes | Folder name |
+| `parent_path` | string | no | Parent folder path (default: root) |
 
 ## Notes
 
-- Authentication is automatic - IntegraClaw injects the OAuth token
-- Uses Microsoft Graph API (`graph.microsoft.com`)
-- Use colon (`:`) syntax for path-based addressing
-- Simple uploads limited to 4MB; use resumable upload for larger files
+- Uses Microsoft Graph API under the hood
 - Download URLs in `@microsoft.graph.downloadUrl` are pre-authenticated
-- Supports OData query parameters: `$select`, `$expand`, `$filter`, `$orderby`, `$top`
 
 ## Resources
 
 - [OneDrive Developer Documentation](https://learn.microsoft.com/en-us/onedrive/developer/)
-- [Microsoft Graph API Reference](https://learn.microsoft.com/en-us/graph/api/overview)
-- [DriveItem Resource](https://learn.microsoft.com/en-us/graph/api/resources/driveitem)
+- [Microsoft Graph DriveItem](https://learn.microsoft.com/en-us/graph/api/resources/driveitem)

@@ -1,146 +1,211 @@
-# Gmail Routing Reference
+# Gmail Action Reference
 
-**App name:** `google-mail`
-**Base URL proxied:** `gmail.googleapis.com`
+**Provider:** `google`
+**Service:** `gmail`
+**App name:** `google-gmail`
 
-## API Path Pattern
+## Actions
 
-```
-/google-mail/gmail/v1/users/me/{endpoint}
-```
+### send_email
 
-## Common Endpoints
+Send an email.
 
-### List Messages
 ```bash
-GET /google-mail/gmail/v1/users/me/messages?maxResults=10
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "gmail",
+    "action": "send_email",
+    "params": {
+      "to": "recipient@example.com",
+      "subject": "Hello",
+      "body": "Email body text"
+    }
+  }'
 ```
 
-With query filter:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `to` | string | yes | Recipient email address |
+| `subject` | string | yes | Email subject |
+| `body` | string | yes | Email body (plain text) |
+| `cc` | string | no | CC recipients (comma-separated) |
+| `bcc` | string | no | BCC recipients (comma-separated) |
+
+### list_messages
+
+List messages from the mailbox.
+
 ```bash
-GET /google-mail/gmail/v1/users/me/messages?q=is:unread&maxResults=10
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "gmail",
+    "action": "list_messages",
+    "params": {
+      "max_results": 10,
+      "label_ids": ["INBOX", "UNREAD"]
+    }
+  }'
 ```
 
-### Get Message
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `max_results` | integer | no | Maximum number of messages (default 10) |
+| `page_token` | string | no | Token for the next page of results |
+| `label_ids` | array | no | Filter by label IDs (e.g. `["INBOX", "UNREAD"]`) |
+
+### search_messages
+
+Search messages using Gmail query syntax.
+
 ```bash
-GET /google-mail/gmail/v1/users/me/messages/{messageId}
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "gmail",
+    "action": "search_messages",
+    "params": {
+      "query": "from:boss@company.com newer_than:7d",
+      "max_results": 20
+    }
+  }'
 ```
 
-With metadata only:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | string | yes | Gmail search query (e.g. `"from:boss@company.com newer_than:7d"`) |
+| `max_results` | integer | no | Maximum results (default 20) |
+| `page_token` | string | no | Pagination token |
+
+### read_message
+
+Read a specific message by ID.
+
 ```bash
-GET /google-mail/gmail/v1/users/me/messages/{messageId}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "gmail",
+    "action": "read_message",
+    "params": {
+      "message_id": "18e1234abc"
+    }
+  }'
 ```
 
-### Send Message
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `message_id` | string | yes | The message ID |
+| `format` | string | no | Response format: `full`, `metadata`, `minimal`, `raw` (default `full`) |
+
+### mark_as_read
+
+Mark a message as read.
+
 ```bash
-POST /google-mail/gmail/v1/users/me/messages/send
-Content-Type: application/json
-
-{
-  "raw": "BASE64_ENCODED_EMAIL"
-}
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "gmail",
+    "action": "mark_as_read",
+    "params": {"message_id": "18e1234abc"}
+  }'
 ```
 
-### List Labels
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `message_id` | string | yes | The message ID |
+
+### archive
+
+Archive a message (remove from Inbox).
+
 ```bash
-GET /google-mail/gmail/v1/users/me/labels
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "gmail",
+    "action": "archive",
+    "params": {"message_id": "18e1234abc"}
+  }'
 ```
 
-### List Threads
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `message_id` | string | yes | The message ID |
+
+### list_labels
+
+List all labels in the mailbox.
+
 ```bash
-GET /google-mail/gmail/v1/users/me/threads?maxResults=10
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "gmail",
+    "action": "list_labels",
+    "params": {}
+  }'
 ```
 
-### Get Thread
+No parameters required.
+
+### create_draft
+
+Create an email draft.
+
 ```bash
-GET /google-mail/gmail/v1/users/me/threads/{threadId}
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "gmail",
+    "action": "create_draft",
+    "params": {
+      "to": "recipient@example.com",
+      "subject": "Draft email",
+      "body": "This is a draft."
+    }
+  }'
 ```
 
-### Modify Message Labels
-```bash
-POST /google-mail/gmail/v1/users/me/messages/{messageId}/modify
-Content-Type: application/json
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `to` | string | yes | Recipient email address |
+| `subject` | string | yes | Email subject |
+| `body` | string | yes | Email body (plain text) |
+| `cc` | string | no | CC recipients (comma-separated) |
+| `bcc` | string | no | BCC recipients (comma-separated) |
 
-{
-  "addLabelIds": ["STARRED"],
-  "removeLabelIds": ["UNREAD"]
-}
-```
+## Query Operators (for search_messages)
 
-### Trash Message
-```bash
-POST /google-mail/gmail/v1/users/me/messages/{messageId}/trash
-```
-
-### Create Draft
-```bash
-POST /google-mail/gmail/v1/users/me/drafts
-Content-Type: application/json
-
-{
-  "message": {
-    "raw": "BASE64URL_ENCODED_EMAIL"
-  }
-}
-```
-
-### Update Draft
-```bash
-PUT /google-mail/gmail/v1/users/me/drafts/{draftId}
-Content-Type: application/json
-
-{
-  "message": {
-    "raw": "BASE64URL_ENCODED_EMAIL"
-  }
-}
-```
-
-### Send Draft
-```bash
-POST /google-mail/gmail/v1/users/me/drafts/send
-Content-Type: application/json
-
-{
-  "id": "{draftId}"
-}
-```
-
-### Get Profile
-```bash
-GET /google-mail/gmail/v1/users/me/profile
-```
-
-## Query Operators
-
-Use in the `q` parameter:
-- `is:unread` - Unread messages
-- `is:starred` - Starred messages
-- `from:email@example.com` - From specific sender
-- `to:email@example.com` - To specific recipient
-- `subject:keyword` - Subject contains keyword
-- `after:2024/01/01` - After date
-- `before:2024/12/31` - Before date
-- `has:attachment` - Has attachments
-
-## Notes
-
-- Authentication is automatic - IntegraClaw injects the OAuth token
-- Use `me` as userId for the authenticated user
-- Message body is base64url encoded in the `raw` field
+- `is:unread` — Unread messages
+- `is:starred` — Starred messages
+- `from:email@example.com` — From specific sender
+- `to:email@example.com` — To specific recipient
+- `subject:keyword` — Subject contains keyword
+- `after:2024/01/01` — After date
+- `before:2024/12/31` — Before date
+- `has:attachment` — Has attachments
+- `newer_than:7d` — Newer than 7 days
 
 ## Resources
 
-- [API Overview](https://developers.google.com/gmail/api/reference/rest)
-- [List Messages](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/list)
-- [Get Message](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/get)
-- [Send Message](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/send)
-- [Modify Message Labels](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/modify)
-- [Trash Message](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/trash)
-- [List Threads](https://developers.google.com/gmail/api/reference/rest/v1/users.threads/list)
-- [Get Thread](https://developers.google.com/gmail/api/reference/rest/v1/users.threads/get)
-- [List Labels](https://developers.google.com/gmail/api/reference/rest/v1/users.labels/list)
-- [Create Draft](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/create)
-- [Update Draft](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/update)
-- [Send Draft](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/send)
-- [Get Profile](https://developers.google.com/gmail/api/reference/rest/v1/users/getProfile)
+- [Gmail API Overview](https://developers.google.com/gmail/api/reference/rest)
+- [Search Operators](https://support.google.com/mail/answer/7190)

@@ -1,294 +1,286 @@
-# Notion Routing Reference
+# Notion Action Reference
 
-**App name:** `notion`
-**Base URL proxied:** `api.notion.com`
+**Provider:** `notion`
+**Services:** `pages`, `databases`, `blocks`
 
-## Required Headers
+Notion actions are split across three services:
 
-All Notion API requests require:
-```
-Notion-Version: 2025-09-03
-```
+| Service | App Name | Actions |
+|---------|----------|---------|
+| Pages | `notion-pages` | search, get, create, update |
+| Databases | `notion-databases` | query, get, create |
+| Blocks | `notion-blocks` | get_children, append, delete |
 
-## API Path Pattern
+---
 
-```
-/notion/v1/{endpoint}
-```
+## Pages
 
-## Key Concept: Databases vs Data Sources
+### search
 
-In API version 2025-09-03, databases and data sources are separate concepts:
+Search pages.
 
-| Concept | Description | Use For |
-|---------|-------------|---------|
-| **Database** | Container that can hold multiple data sources | Creating databases, getting data_source IDs |
-| **Data Source** | Schema and data within a database | Querying, updating schema, updating properties |
-
-Most existing databases have one data source. Use `GET /databases/{id}` to get the `data_source_id`, then use `/data_sources/` endpoints for all operations.
-
-## Common Endpoints
-
-### Search
-
-Search for pages:
 ```bash
-POST /notion/v1/search
-Content-Type: application/json
-Notion-Version: 2025-09-03
-
-{
-  "query": "meeting notes",
-  "filter": {"property": "object", "value": "page"}
-}
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "notion",
+    "service": "pages",
+    "action": "search",
+    "params": {"query": "meeting notes", "page_size": 10}
+  }'
 ```
 
-Search for data sources:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | string | no | Search query text |
+| `page_size` | integer | no | Number of results (default 10, max 100) |
+| `start_cursor` | string | no | Pagination cursor |
+
+### get
+
+Get a page by ID.
+
 ```bash
-POST /notion/v1/search
-Content-Type: application/json
-Notion-Version: 2025-09-03
-
-{
-  "filter": {"property": "object", "value": "data_source"}
-}
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "notion",
+    "service": "pages",
+    "action": "get",
+    "params": {"page_id": "PAGE_ID"}
+  }'
 ```
 
-With pagination:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `page_id` | string | yes | Page ID |
+
+### create
+
+Create a new page.
+
 ```bash
-POST /notion/v1/search
-Content-Type: application/json
-Notion-Version: 2025-09-03
-
-{
-  "page_size": 10,
-  "start_cursor": "CURSOR_FROM_PREVIOUS_RESPONSE"
-}
-```
-
-### Data Sources
-
-Use data source endpoints for querying, getting schema, and updates.
-
-#### Get Data Source
-```bash
-GET /notion/v1/data_sources/{dataSourceId}
-Notion-Version: 2025-09-03
-```
-
-Returns full schema with `properties` field.
-
-#### Query Data Source
-```bash
-POST /notion/v1/data_sources/{dataSourceId}/query
-Content-Type: application/json
-Notion-Version: 2025-09-03
-
-{
-  "filter": {
-    "property": "Status",
-    "select": {"equals": "Active"}
-  },
-  "sorts": [
-    {"property": "Created", "direction": "descending"}
-  ],
-  "page_size": 100
-}
-```
-
-#### Update Data Source (title, schema, properties)
-```bash
-PATCH /notion/v1/data_sources/{dataSourceId}
-Content-Type: application/json
-Notion-Version: 2025-09-03
-
-{
-  "title": [{"type": "text", "text": {"content": "Updated Title"}}],
-  "properties": {
-    "NewColumn": {"rich_text": {}}
-  }
-}
-```
-
-### Databases
-
-Database endpoints are only needed for **creating** databases and **discovering** data source IDs.
-
-#### Get Database (to find data_source_id)
-```bash
-GET /notion/v1/databases/{databaseId}
-Notion-Version: 2025-09-03
-```
-
-Response includes `data_sources` array:
-```json
-{
-  "id": "database-id",
-  "object": "database",
-  "data_sources": [{"id": "data-source-id", "name": "Database Name"}]
-}
-```
-
-**Note:** This endpoint returns `properties: null`. Use `GET /data_sources/{id}` to get the schema.
-
-#### Create Database
-```bash
-POST /notion/v1/databases
-Content-Type: application/json
-Notion-Version: 2025-09-03
-
-{
-  "parent": {"type": "page_id", "page_id": "PARENT_PAGE_ID"},
-  "title": [{"type": "text", "text": {"content": "New Database"}}],
-  "properties": {
-    "Name": {"title": {}},
-    "Status": {"select": {"options": [{"name": "Active"}, {"name": "Done"}]}}
-  }
-}
-```
-
-**Important:** Cannot create databases via `/data_sources` endpoint.
-
-### Pages
-
-#### Get Page
-```bash
-GET /notion/v1/pages/{pageId}
-Notion-Version: 2025-09-03
-```
-
-#### Create Page in Data Source
-Use `data_source_id` (not `database_id`) as parent:
-```bash
-POST /notion/v1/pages
-Content-Type: application/json
-Notion-Version: 2025-09-03
-
-{
-  "parent": {"data_source_id": "DATA_SOURCE_ID"},
-  "properties": {
-    "Name": {"title": [{"text": {"content": "New Page"}}]},
-    "Status": {"select": {"name": "Active"}}
-  }
-}
-```
-
-#### Create Child Page (under another page)
-```bash
-POST /notion/v1/pages
-Content-Type: application/json
-Notion-Version: 2025-09-03
-
-{
-  "parent": {"page_id": "PARENT_PAGE_ID"},
-  "properties": {
-    "title": {"title": [{"text": {"content": "Child Page"}}]}
-  }
-}
-```
-
-#### Update Page Properties
-```bash
-PATCH /notion/v1/pages/{pageId}
-Content-Type: application/json
-Notion-Version: 2025-09-03
-
-{
-  "properties": {
-    "Status": {"select": {"name": "Done"}}
-  }
-}
-```
-
-#### Archive Page
-```bash
-PATCH /notion/v1/pages/{pageId}
-Content-Type: application/json
-Notion-Version: 2025-09-03
-
-{
-  "archived": true
-}
-```
-
-### Blocks
-
-#### Get Block
-```bash
-GET /notion/v1/blocks/{blockId}
-Notion-Version: 2025-09-03
-```
-
-#### Get Block Children
-```bash
-GET /notion/v1/blocks/{blockId}/children
-Notion-Version: 2025-09-03
-```
-
-#### Append Block Children
-```bash
-PATCH /notion/v1/blocks/{blockId}/children
-Content-Type: application/json
-Notion-Version: 2025-09-03
-
-{
-  "children": [
-    {
-      "object": "block",
-      "type": "paragraph",
-      "paragraph": {
-        "rich_text": [{"type": "text", "text": {"content": "New paragraph"}}]
-      }
-    },
-    {
-      "object": "block",
-      "type": "heading_2",
-      "heading_2": {
-        "rich_text": [{"type": "text", "text": {"content": "Heading"}}]
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "notion",
+    "service": "pages",
+    "action": "create",
+    "params": {
+      "parent_database_id": "DATABASE_ID",
+      "title": "Meeting Notes",
+      "properties": {
+        "Status": {"select": {"name": "Active"}}
       }
     }
-  ]
-}
+  }'
 ```
 
-#### Update Block
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `title` | string | yes | Page title |
+| `parent_page_id` | string | no | Parent page ID (creates as child page) |
+| `parent_database_id` | string | no | Parent database ID (creates as database entry) |
+| `properties` | object | no | Page properties (for database entries, must match schema) |
+
+### update
+
+Update a page.
+
 ```bash
-PATCH /notion/v1/blocks/{blockId}
-Content-Type: application/json
-Notion-Version: 2025-09-03
-
-{
-  "paragraph": {
-    "rich_text": [{"text": {"content": "Updated text"}}]
-  }
-}
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "notion",
+    "service": "pages",
+    "action": "update",
+    "params": {
+      "page_id": "PAGE_ID",
+      "properties": {"Status": {"select": {"name": "Done"}}}
+    }
+  }'
 ```
 
-#### Delete Block
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `page_id` | string | yes | Page ID to update |
+| `properties` | object | no | Properties to update |
+| `archived` | boolean | no | Set to `true` to archive the page |
+
+---
+
+## Databases
+
+### query
+
+Query a database with filters and sorts.
+
 ```bash
-DELETE /notion/v1/blocks/{blockId}
-Notion-Version: 2025-09-03
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "notion",
+    "service": "databases",
+    "action": "query",
+    "params": {
+      "database_id": "DATABASE_ID",
+      "filter": {"property": "Status", "select": {"equals": "Active"}},
+      "sorts": [{"property": "Created", "direction": "descending"}],
+      "page_size": 50
+    }
+  }'
 ```
 
-### Users
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `database_id` | string | yes | Database ID |
+| `filter` | object | no | Notion filter object |
+| `sorts` | array | no | Array of sort objects |
+| `page_size` | integer | no | Number of results (default 10, max 100) |
+| `start_cursor` | string | no | Pagination cursor |
 
-#### List Users
+### get
+
+Get database metadata and schema.
+
 ```bash
-GET /notion/v1/users
-Notion-Version: 2025-09-03
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "notion",
+    "service": "databases",
+    "action": "get",
+    "params": {"database_id": "DATABASE_ID"}
+  }'
 ```
 
-#### Get User by ID
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `database_id` | string | yes | Database ID |
+
+### create
+
+Create a new database.
+
 ```bash
-GET /notion/v1/users/{userId}
-Notion-Version: 2025-09-03
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "notion",
+    "service": "databases",
+    "action": "create",
+    "params": {
+      "parent_page_id": "PAGE_ID",
+      "title": "Task Tracker",
+      "properties": {
+        "Name": {"title": {}},
+        "Status": {"select": {"options": [{"name": "To Do"}, {"name": "Done"}]}}
+      }
+    }
+  }'
 ```
 
-#### Get Current User (Bot)
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `parent_page_id` | string | yes | Parent page ID |
+| `title` | string | yes | Database title |
+| `properties` | object | yes | Database property schema |
+
+---
+
+## Blocks
+
+### get_children
+
+Get block children (page content).
+
 ```bash
-GET /notion/v1/users/me
-Notion-Version: 2025-09-03
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "notion",
+    "service": "blocks",
+    "action": "get_children",
+    "params": {"block_id": "PAGE_OR_BLOCK_ID"}
+  }'
 ```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `block_id` | string | yes | Block or page ID |
+| `page_size` | integer | no | Number of results (default 100, max 100) |
+| `start_cursor` | string | no | Pagination cursor |
+
+### append
+
+Append blocks to a page or block.
+
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "notion",
+    "service": "blocks",
+    "action": "append",
+    "params": {
+      "block_id": "PAGE_ID",
+      "children": [
+        {
+          "type": "paragraph",
+          "paragraph": {
+            "rich_text": [{"type": "text", "text": {"content": "Hello from IntegraClaw"}}]
+          }
+        }
+      ]
+    }
+  }'
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `block_id` | string | yes | Block or page ID to append to |
+| `children` | array | yes | Array of block objects |
+
+### delete
+
+Delete (archive) a block.
+
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "notion",
+    "service": "blocks",
+    "action": "delete",
+    "params": {"block_id": "BLOCK_ID"}
+  }'
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `block_id` | string | yes | Block ID to delete (archive) |
+
+---
+
+## Common Block Types (for append)
+
+- `paragraph` — Text paragraph
+- `heading_1`, `heading_2`, `heading_3` — Headings
+- `bulleted_list_item`, `numbered_list_item` — List items
+- `to_do` — Checkbox item
+- `code` — Code block
+- `quote` — Quote block
+- `divider` — Horizontal divider
 
 ## Filter Operators
 
@@ -296,50 +288,9 @@ Notion-Version: 2025-09-03
 - `contains`, `does_not_contain`
 - `starts_with`, `ends_with`
 - `is_empty`, `is_not_empty`
-- `greater_than`, `less_than`, `greater_than_or_equal_to`, `less_than_or_equal_to`
-
-## Block Types
-
-Common block types for appending:
-- `paragraph` - Text paragraph
-- `heading_1`, `heading_2`, `heading_3` - Headings
-- `bulleted_list_item`, `numbered_list_item` - List items
-- `to_do` - Checkbox item
-- `code` - Code block
-- `quote` - Quote block
-- `divider` - Horizontal divider
-
-## Migration from Older API Versions
-
-| Old (2022-06-28) | New (2025-09-03) |
-|------------------|------------------|
-| `POST /databases/{id}/query` | `POST /data_sources/{id}/query` |
-| `GET /databases/{id}` for schema | `GET /data_sources/{id}` for schema |
-| `PATCH /databases/{id}` for schema | `PATCH /data_sources/{id}` for schema |
-| Parent: `{"database_id": "..."}` | Parent: `{"data_source_id": "..."}` |
-| Search filter: `"database"` | Search filter: `"data_source"` |
-
-## Notes
-
-- Use `GET /databases/{id}` to discover `data_source_id`, then use `/data_sources/` for all operations
-- Creating databases still requires `POST /databases` endpoint
-- Parent objects for create database require `type` field: `{"type": "page_id", "page_id": "..."}`
-- All IDs are UUIDs (with or without hyphens)
-- Delete blocks returns the block with `archived: true`
+- `greater_than`, `less_than`
 
 ## Resources
 
-- [API Introduction](https://developers.notion.com/reference/intro)
-- [Search](https://developers.notion.com/reference/post-search.md)
-- [Query Database](https://developers.notion.com/reference/post-database-query.md)
-- [Get Database](https://developers.notion.com/reference/retrieve-a-database.md)
-- [Create Database](https://developers.notion.com/reference/create-a-database.md)
-- [Get Page](https://developers.notion.com/reference/retrieve-a-page.md)
-- [Create Page](https://developers.notion.com/reference/post-page.md)
-- [Update Page](https://developers.notion.com/reference/patch-page.md)
-- [Get Block Children](https://developers.notion.com/reference/get-block-children.md)
-- [Append Block Children](https://developers.notion.com/reference/patch-block-children.md)
-- [List Users](https://developers.notion.com/reference/get-users.md)
-- [Filter Reference](https://developers.notion.com/reference/post-database-query-filter.md)
-- [LLM Reference](https://developers.notion.com/llms.txt)
-- [Version Reference](https://developers.notion.com/guides/get-started/upgrade-guide-2025-09-03)
+- [Notion API Reference](https://developers.notion.com/reference/intro)
+- [Filter Reference](https://developers.notion.com/reference/post-database-query-filter)

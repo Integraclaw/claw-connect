@@ -1,238 +1,124 @@
-# Outlook Routing Reference
+# Outlook Action Reference
 
-**App name:** `outlook`
-**Base URL proxied:** `graph.microsoft.com`
+**Provider:** `microsoft`
+**Service:** `outlook`
+**App name:** `microsoft-outlook`
 
-## API Path Pattern
+## Actions
 
-```
-/outlook/v1.0/me/{resource}
-```
+### send_email
 
-## Common Endpoints
+Send an email via Outlook.
 
-### User Profile
 ```bash
-GET /outlook/v1.0/me
-```
-
-### Mail Folders
-
-#### List Mail Folders
-```bash
-GET /outlook/v1.0/me/mailFolders
-```
-
-Well-known folder names: `Inbox`, `Drafts`, `SentItems`, `DeletedItems`, `Archive`, `JunkEmail`
-
-#### Get Mail Folder
-```bash
-GET /outlook/v1.0/me/mailFolders/{folderId}
-```
-
-#### Create Mail Folder
-```bash
-POST /outlook/v1.0/me/mailFolders
-Content-Type: application/json
-
-{
-  "displayName": "My Folder"
-}
-```
-
-### Messages
-
-#### List Messages
-```bash
-GET /outlook/v1.0/me/messages
-```
-
-From specific folder:
-```bash
-GET /outlook/v1.0/me/mailFolders/Inbox/messages
-```
-
-With filter:
-```bash
-GET /outlook/v1.0/me/messages?$filter=isRead eq false&$top=10
-```
-
-#### Get Message
-```bash
-GET /outlook/v1.0/me/messages/{messageId}
-```
-
-#### Send Message
-```bash
-POST /outlook/v1.0/me/sendMail
-Content-Type: application/json
-
-{
-  "message": {
-    "subject": "Hello",
-    "body": {
-      "contentType": "Text",
-      "content": "This is the email body."
-    },
-    "toRecipients": [
-      {
-        "emailAddress": {
-          "address": "recipient@example.com"
-        }
-      }
-    ]
-  },
-  "saveToSentItems": true
-}
-```
-
-#### Create Draft
-```bash
-POST /outlook/v1.0/me/messages
-Content-Type: application/json
-
-{
-  "subject": "Hello",
-  "body": {
-    "contentType": "Text",
-    "content": "This is the email body."
-  },
-  "toRecipients": [
-    {
-      "emailAddress": {
-        "address": "recipient@example.com"
-      }
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "microsoft",
+    "service": "outlook",
+    "action": "send_email",
+    "params": {
+      "to": "recipient@example.com",
+      "subject": "Hello",
+      "body": "Email body text"
     }
-  ]
-}
+  }'
 ```
 
-#### Send Existing Draft
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `to` | string | yes | Recipient email address |
+| `subject` | string | yes | Email subject |
+| `body` | string | yes | Email body |
+| `cc` | string | no | CC recipients (comma-separated) |
+| `body_type` | string | no | Body content type: `text` or `html` (default `text`) |
+
+### list_messages
+
+List messages from a mail folder.
+
 ```bash
-POST /outlook/v1.0/me/messages/{messageId}/send
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "microsoft",
+    "service": "outlook",
+    "action": "list_messages",
+    "params": {"folder": "inbox", "top": 10}
+  }'
 ```
 
-#### Update Message (Mark as Read)
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `folder` | string | no | Mail folder (default: `inbox`) |
+| `top` | integer | no | Number of messages (default 10) |
+| `skip` | integer | no | Number of messages to skip (pagination) |
+
+### search_messages
+
+Search messages.
+
 ```bash
-PATCH /outlook/v1.0/me/messages/{messageId}
-Content-Type: application/json
-
-{
-  "isRead": true
-}
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "microsoft",
+    "service": "outlook",
+    "action": "search_messages",
+    "params": {"query": "from:boss subject:project", "top": 10}
+  }'
 ```
 
-#### Delete Message
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | string | yes | Search query |
+| `top` | integer | no | Max results (default 10) |
+
+### read_message
+
+Read a specific message.
+
 ```bash
-DELETE /outlook/v1.0/me/messages/{messageId}
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "microsoft",
+    "service": "outlook",
+    "action": "read_message",
+    "params": {"message_id": "MESSAGE_ID"}
+  }'
 ```
 
-#### Move Message
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `message_id` | string | yes | The message ID |
+
+### list_folders
+
+List all mail folders.
+
 ```bash
-POST /outlook/v1.0/me/messages/{messageId}/move
-Content-Type: application/json
-
-{
-  "destinationId": "{folderId}"
-}
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "microsoft",
+    "service": "outlook",
+    "action": "list_folders",
+    "params": {}
+  }'
 ```
 
-### Calendar
+No parameters required.
 
-#### List Calendars
-```bash
-GET /outlook/v1.0/me/calendars
-```
+## Well-known Folder Names
 
-#### List Events
-```bash
-GET /outlook/v1.0/me/calendar/events
-```
-
-With filter:
-```bash
-GET /outlook/v1.0/me/calendar/events?$filter=start/dateTime ge '2024-01-01'&$top=10
-```
-
-#### Create Event
-```bash
-POST /outlook/v1.0/me/calendar/events
-Content-Type: application/json
-
-{
-  "subject": "Meeting",
-  "start": {
-    "dateTime": "2024-01-15T10:00:00",
-    "timeZone": "UTC"
-  },
-  "end": {
-    "dateTime": "2024-01-15T11:00:00",
-    "timeZone": "UTC"
-  },
-  "attendees": [
-    {
-      "emailAddress": {
-        "address": "attendee@example.com"
-      },
-      "type": "required"
-    }
-  ]
-}
-```
-
-#### Delete Event
-```bash
-DELETE /outlook/v1.0/me/events/{eventId}
-```
-
-### Contacts
-
-#### List Contacts
-```bash
-GET /outlook/v1.0/me/contacts
-```
-
-#### Create Contact
-```bash
-POST /outlook/v1.0/me/contacts
-Content-Type: application/json
-
-{
-  "givenName": "John",
-  "surname": "Doe",
-  "emailAddresses": [
-    {
-      "address": "john.doe@example.com"
-    }
-  ]
-}
-```
-
-#### Delete Contact
-```bash
-DELETE /outlook/v1.0/me/contacts/{contactId}
-```
-
-## OData Query Parameters
-
-- `$top=10` - Limit results
-- `$skip=20` - Skip results (pagination)
-- `$select=subject,from` - Select specific fields
-- `$filter=isRead eq false` - Filter results
-- `$orderby=receivedDateTime desc` - Sort results
-- `$search="keyword"` - Search content
-
-## Notes
-
-- Use `me` as the user identifier for the authenticated user
-- Message body content types: `Text` or `HTML`
-- Well-known folder names work as folder IDs: `Inbox`, `Drafts`, `SentItems`, etc.
-- Calendar events use ISO 8601 datetime format
+`Inbox`, `Drafts`, `SentItems`, `DeletedItems`, `Archive`, `JunkEmail`
 
 ## Resources
 
-- [Microsoft Graph API Overview](https://learn.microsoft.com/en-us/graph/api/overview)
-- [Mail API](https://learn.microsoft.com/en-us/graph/api/resources/mail-api-overview)
-- [Calendar API](https://learn.microsoft.com/en-us/graph/api/resources/calendar)
-- [Contacts API](https://learn.microsoft.com/en-us/graph/api/resources/contact)
-- [Query Parameters](https://learn.microsoft.com/en-us/graph/query-parameters)
+- [Microsoft Graph Mail API](https://learn.microsoft.com/en-us/graph/api/resources/mail-api-overview)
