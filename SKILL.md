@@ -234,6 +234,10 @@ curl -s "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=5" \
 | Google | Calendar | `google-calendar` | list_calendars, list_events, search_events, get_event, create_event, update_event, delete_event, quick_add |
 | Google | Drive | `google-drive` | list_files, search_files, get_file, create_folder, copy_file, update_file, delete_file |
 | Google | Sheets | `google-sheets` | get_spreadsheet, read_range, write_range, append_rows, clear_range, create_spreadsheet |
+| Google | Tasks | `google-tasks` | list_task_lists, create_task_list, delete_task_list, list_tasks, get_task, create_task, update_task, complete_task |
+| Google | Contacts | `google-contacts` | list_contacts, search_contacts, get_contact, create_contact, delete_contact |
+| Google | Docs | `google-docs` | create_document, get_document, insert_text, replace_text |
+| Google | Meet | `google-meet` | create_space, get_space, end_conference, list_conference_records |
 | Microsoft | Outlook | `microsoft-outlook` | send_email, list_messages, search_messages, read_message, list_folders |
 | Microsoft | Calendar | `microsoft-calendar` | list_events, get_event, create_event, delete_event |
 | Microsoft | Teams | `microsoft-teams` | list_teams, list_channels, send_message, list_messages |
@@ -247,6 +251,10 @@ See [references/](references/) for detailed action guides per service:
 - [Google Calendar](references/google-calendar/README.md) — Events, calendars, quick add
 - [Google Drive](references/google-drive/README.md) — Files, folders, search
 - [Google Sheets](references/google-sheets/README.md) — Read, write, append, create
+- [Google Tasks](references/google-tasks/README.md) — Task lists, create, complete, subtasks
+- [Google Contacts](references/google-contacts/README.md) — List, search, create, delete contacts
+- [Google Docs](references/google-docs/README.md) — Create, read, insert text, find & replace
+- [Google Meet](references/google-meet/README.md) — Create spaces, end conferences, records
 - [Outlook](references/outlook/README.md) — Send, list, search, read, folders
 - [Microsoft Calendar](references/microsoft-calendar/README.md) — Events, create, delete
 - [Microsoft Teams](references/microsoft-teams/README.md) — Teams, channels, messages
@@ -449,6 +457,102 @@ curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
         "Status": {"select": {"name": "Active"}}
       }
     }
+  }'
+```
+
+### Google Tasks — Create Task
+
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "tasks",
+    "action": "create_task",
+    "params": {
+      "title": "Review pull request",
+      "notes": "Check for security issues",
+      "due": "2026-03-15T00:00:00Z"
+    }
+  }'
+```
+
+### Google Tasks — Complete Task
+
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "tasks",
+    "action": "complete_task",
+    "params": {
+      "tasklist_id": "TASKLIST_ID",
+      "task_id": "TASK_ID"
+    }
+  }'
+```
+
+### Google Contacts — Search
+
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "contacts",
+    "action": "search_contacts",
+    "params": {
+      "query": "John"
+    }
+  }'
+```
+
+### Google Docs — Create and Write
+
+```bash
+# Create a new document
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "docs",
+    "action": "create_document",
+    "params": {
+      "title": "Meeting Notes"
+    }
+  }'
+
+# Insert text into the document
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "docs",
+    "action": "insert_text",
+    "params": {
+      "document_id": "DOCUMENT_ID",
+      "text": "Agenda:\n1. Project updates\n2. Action items\n"
+    }
+  }'
+```
+
+### Google Meet — Create Meeting
+
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "meet",
+    "action": "create_space",
+    "params": {}
   }'
 ```
 
