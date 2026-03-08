@@ -1,93 +1,216 @@
-# Outlook Mail API Reference
+# Outlook Routing Reference
 
-**App name:** `microsoft-outlook`
-**Provider:** `microsoft` | **Service:** `outlook`
-**Base URL:** `https://graph.microsoft.com/v1.0`
+**App name:** `outlook`
+**Base URL proxied:** `graph.microsoft.com`
 
-## IntegraClaw Actions
+## API Path Pattern
 
-| Action | Description |
-|--------|-------------|
-| `send_email` | Send an email |
-| `list_messages` | List messages in inbox |
-| `read_message` | Read a specific message |
-| `search_messages` | Search messages |
-| `create_draft` | Create an email draft |
+```
+/outlook/v1.0/me/{resource}
+```
 
-### Example: Send Email
-```json
+## Common Endpoints
+
+### User Profile
+```bash
+GET /outlook/v1.0/me
+```
+
+### Mail Folders
+
+#### List Mail Folders
+```bash
+GET /outlook/v1.0/me/mailFolders
+```
+
+Well-known folder names: `Inbox`, `Drafts`, `SentItems`, `DeletedItems`, `Archive`, `JunkEmail`
+
+#### Get Mail Folder
+```bash
+GET /outlook/v1.0/me/mailFolders/{folderId}
+```
+
+#### Create Mail Folder
+```bash
+POST /outlook/v1.0/me/mailFolders
+Content-Type: application/json
+
 {
-  "provider": "microsoft",
-  "service": "outlook",
-  "action": "send_email",
-  "params": {
-    "to": "recipient@example.com",
-    "subject": "Hello!",
-    "body": "Message content"
-  }
+  "displayName": "My Folder"
 }
 ```
 
-## Native API Endpoints
+### Messages
 
-### List Messages
+#### List Messages
 ```bash
-GET https://graph.microsoft.com/v1.0/me/messages
+GET /outlook/v1.0/me/messages
+```
+
+From specific folder:
+```bash
+GET /outlook/v1.0/me/mailFolders/Inbox/messages
 ```
 
 With filter:
 ```bash
-GET https://graph.microsoft.com/v1.0/me/messages?$filter=isRead eq false&$top=10
+GET /outlook/v1.0/me/messages?$filter=isRead eq false&$top=10
 ```
 
-### Get Message
+#### Get Message
 ```bash
-GET https://graph.microsoft.com/v1.0/me/messages/{messageId}
+GET /outlook/v1.0/me/messages/{messageId}
 ```
 
-### Send Message
+#### Send Message
 ```bash
-POST https://graph.microsoft.com/v1.0/me/sendMail
+POST /outlook/v1.0/me/sendMail
 Content-Type: application/json
 
 {
   "message": {
     "subject": "Hello",
-    "body": {"contentType": "Text", "content": "Email body."},
-    "toRecipients": [{"emailAddress": {"address": "recipient@example.com"}}]
+    "body": {
+      "contentType": "Text",
+      "content": "This is the email body."
+    },
+    "toRecipients": [
+      {
+        "emailAddress": {
+          "address": "recipient@example.com"
+        }
+      }
+    ]
   },
   "saveToSentItems": true
 }
 ```
 
-### Create Draft
+#### Create Draft
 ```bash
-POST https://graph.microsoft.com/v1.0/me/messages
+POST /outlook/v1.0/me/messages
 Content-Type: application/json
 
 {
   "subject": "Hello",
-  "body": {"contentType": "Text", "content": "Email body."},
-  "toRecipients": [{"emailAddress": {"address": "recipient@example.com"}}]
+  "body": {
+    "contentType": "Text",
+    "content": "This is the email body."
+  },
+  "toRecipients": [
+    {
+      "emailAddress": {
+        "address": "recipient@example.com"
+      }
+    }
+  ]
 }
 ```
 
-### Update Message (Mark as Read)
+#### Send Existing Draft
 ```bash
-PATCH https://graph.microsoft.com/v1.0/me/messages/{messageId}
+POST /outlook/v1.0/me/messages/{messageId}/send
+```
+
+#### Update Message (Mark as Read)
+```bash
+PATCH /outlook/v1.0/me/messages/{messageId}
 Content-Type: application/json
 
-{"isRead": true}
+{
+  "isRead": true
+}
 ```
 
-### Delete Message
+#### Delete Message
 ```bash
-DELETE https://graph.microsoft.com/v1.0/me/messages/{messageId}
+DELETE /outlook/v1.0/me/messages/{messageId}
 ```
 
-### List Mail Folders
+#### Move Message
 ```bash
-GET https://graph.microsoft.com/v1.0/me/mailFolders
+POST /outlook/v1.0/me/messages/{messageId}/move
+Content-Type: application/json
+
+{
+  "destinationId": "{folderId}"
+}
+```
+
+### Calendar
+
+#### List Calendars
+```bash
+GET /outlook/v1.0/me/calendars
+```
+
+#### List Events
+```bash
+GET /outlook/v1.0/me/calendar/events
+```
+
+With filter:
+```bash
+GET /outlook/v1.0/me/calendar/events?$filter=start/dateTime ge '2024-01-01'&$top=10
+```
+
+#### Create Event
+```bash
+POST /outlook/v1.0/me/calendar/events
+Content-Type: application/json
+
+{
+  "subject": "Meeting",
+  "start": {
+    "dateTime": "2024-01-15T10:00:00",
+    "timeZone": "UTC"
+  },
+  "end": {
+    "dateTime": "2024-01-15T11:00:00",
+    "timeZone": "UTC"
+  },
+  "attendees": [
+    {
+      "emailAddress": {
+        "address": "attendee@example.com"
+      },
+      "type": "required"
+    }
+  ]
+}
+```
+
+#### Delete Event
+```bash
+DELETE /outlook/v1.0/me/events/{eventId}
+```
+
+### Contacts
+
+#### List Contacts
+```bash
+GET /outlook/v1.0/me/contacts
+```
+
+#### Create Contact
+```bash
+POST /outlook/v1.0/me/contacts
+Content-Type: application/json
+
+{
+  "givenName": "John",
+  "surname": "Doe",
+  "emailAddresses": [
+    {
+      "address": "john.doe@example.com"
+    }
+  ]
+}
+```
+
+#### Delete Contact
+```bash
+DELETE /outlook/v1.0/me/contacts/{contactId}
 ```
 
 ## OData Query Parameters
@@ -103,9 +226,13 @@ GET https://graph.microsoft.com/v1.0/me/mailFolders
 
 - Use `me` as the user identifier for the authenticated user
 - Message body content types: `Text` or `HTML`
-- Well-known folder names work as folder IDs: `Inbox`, `Drafts`, `SentItems`
+- Well-known folder names work as folder IDs: `Inbox`, `Drafts`, `SentItems`, etc.
+- Calendar events use ISO 8601 datetime format
 
 ## Resources
 
+- [Microsoft Graph API Overview](https://learn.microsoft.com/en-us/graph/api/overview)
 - [Mail API](https://learn.microsoft.com/en-us/graph/api/resources/mail-api-overview)
-- [Microsoft Graph API](https://learn.microsoft.com/en-us/graph/api/overview)
+- [Calendar API](https://learn.microsoft.com/en-us/graph/api/resources/calendar)
+- [Contacts API](https://learn.microsoft.com/en-us/graph/api/resources/contact)
+- [Query Parameters](https://learn.microsoft.com/en-us/graph/query-parameters)

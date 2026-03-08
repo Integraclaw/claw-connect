@@ -1,115 +1,139 @@
-# Google Calendar API Reference
+# Google Calendar Routing Reference
 
 **App name:** `google-calendar`
-**Provider:** `google` | **Service:** `calendar`
-**Base URL:** `https://www.googleapis.com/calendar/v3`
+**Base URL proxied:** `www.googleapis.com`
 
-## IntegraClaw Actions
+## API Path Pattern
 
-| Action | Description |
-|--------|-------------|
-| `list_events` | List calendar events |
-| `get_event` | Get a specific event |
-| `create_event` | Create a calendar event |
-| `update_event` | Update an existing event |
-| `delete_event` | Delete an event |
-| `list_calendars` | List all calendars |
-| `quick_add` | Create event from natural language |
-| `check_availability` | Check free/busy status |
-
-### Example: Create Event
-```json
-{
-  "provider": "google",
-  "service": "calendar",
-  "action": "create_event",
-  "params": {
-    "summary": "Team Meeting",
-    "start_time": "2026-03-10T10:00:00Z",
-    "end_time": "2026-03-10T11:00:00Z",
-    "description": "Weekly sync"
-  }
-}
+```
+/google-calendar/calendar/v3/{endpoint}
 ```
 
-## Native API Endpoints
+## Common Endpoints
 
 ### List Calendars
 ```bash
-GET https://www.googleapis.com/calendar/v3/users/me/calendarList
+GET /google-calendar/calendar/v3/users/me/calendarList
 ```
+
+### Get Calendar
+```bash
+GET /google-calendar/calendar/v3/calendars/{calendarId}
+```
+
+Use `primary` for the user's primary calendar.
 
 ### List Events
 ```bash
-GET https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=10&orderBy=startTime&singleEvents=true
+GET /google-calendar/calendar/v3/calendars/primary/events?maxResults=10&orderBy=startTime&singleEvents=true
 ```
 
 With time bounds:
 ```bash
-GET https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=2026-01-01T00:00:00Z&timeMax=2026-12-31T23:59:59Z&singleEvents=true&orderBy=startTime
+GET /google-calendar/calendar/v3/calendars/primary/events?timeMin=2024-01-01T00:00:00Z&timeMax=2024-12-31T23:59:59Z&singleEvents=true&orderBy=startTime
 ```
 
 ### Get Event
 ```bash
-GET https://www.googleapis.com/calendar/v3/calendars/primary/events/{eventId}
+GET /google-calendar/calendar/v3/calendars/primary/events/{eventId}
 ```
 
 ### Insert Event
 ```bash
-POST https://www.googleapis.com/calendar/v3/calendars/primary/events
+POST /google-calendar/calendar/v3/calendars/primary/events
 Content-Type: application/json
 
 {
   "summary": "Team Meeting",
-  "start": {"dateTime": "2026-03-10T10:00:00", "timeZone": "America/Sao_Paulo"},
-  "end": {"dateTime": "2026-03-10T11:00:00", "timeZone": "America/Sao_Paulo"},
-  "attendees": [{"email": "attendee@example.com"}]
+  "description": "Weekly sync",
+  "start": {
+    "dateTime": "2024-01-15T10:00:00",
+    "timeZone": "America/Los_Angeles"
+  },
+  "end": {
+    "dateTime": "2024-01-15T11:00:00",
+    "timeZone": "America/Los_Angeles"
+  },
+  "attendees": [
+    {"email": "attendee@example.com"}
+  ]
+}
+```
+
+All-day event:
+```bash
+POST /google-calendar/calendar/v3/calendars/primary/events
+Content-Type: application/json
+
+{
+  "summary": "All Day Event",
+  "start": {"date": "2024-01-15"},
+  "end": {"date": "2024-01-16"}
 }
 ```
 
 ### Update Event
 ```bash
-PUT https://www.googleapis.com/calendar/v3/calendars/primary/events/{eventId}
+PUT /google-calendar/calendar/v3/calendars/primary/events/{eventId}
 Content-Type: application/json
 
 {
   "summary": "Updated Meeting Title",
-  "start": {"dateTime": "2026-03-10T10:00:00Z"},
-  "end": {"dateTime": "2026-03-10T11:00:00Z"}
+  "start": {"dateTime": "2024-01-15T10:00:00Z"},
+  "end": {"dateTime": "2024-01-15T11:00:00Z"}
+}
+```
+
+### Patch Event (partial update)
+```bash
+PATCH /google-calendar/calendar/v3/calendars/primary/events/{eventId}
+Content-Type: application/json
+
+{
+  "summary": "New Title Only"
 }
 ```
 
 ### Delete Event
 ```bash
-DELETE https://www.googleapis.com/calendar/v3/calendars/primary/events/{eventId}
+DELETE /google-calendar/calendar/v3/calendars/primary/events/{eventId}
 ```
 
-### Quick Add (natural language)
+### Quick Add Event (natural language)
 ```bash
-POST https://www.googleapis.com/calendar/v3/calendars/primary/events/quickAdd?text=Meeting+with+John+tomorrow+at+3pm
+POST /google-calendar/calendar/v3/calendars/primary/events/quickAdd?text=Meeting+with+John+tomorrow+at+3pm
 ```
 
 ### Free/Busy Query
 ```bash
-POST https://www.googleapis.com/calendar/v3/freeBusy
+POST /google-calendar/calendar/v3/freeBusy
 Content-Type: application/json
 
 {
-  "timeMin": "2026-03-10T00:00:00Z",
-  "timeMax": "2026-03-11T00:00:00Z",
+  "timeMin": "2024-01-15T00:00:00Z",
+  "timeMax": "2024-01-16T00:00:00Z",
   "items": [{"id": "primary"}]
 }
 ```
 
 ## Notes
 
+- Authentication is automatic - IntegraClaw injects the OAuth token
 - Use `primary` as calendarId for the user's main calendar
-- Times must be in RFC3339 format
+- Times must be in RFC3339 format (e.g., `2026-01-15T10:00:00Z`)
 - For recurring events, use `singleEvents=true` to expand instances
 - `orderBy=startTime` requires `singleEvents=true`
 
 ## Resources
 
 - [API Overview](https://developers.google.com/calendar/api/v3/reference)
+- [List Calendars](https://developers.google.com/workspace/calendar/api/v3/reference/calendarList/list)
+- [Get Calendar](https://developers.google.com/workspace/calendar/api/v3/reference/calendarList/get)
 - [List Events](https://developers.google.com/workspace/calendar/api/v3/reference/events/list)
+- [Get Event](https://developers.google.com/workspace/calendar/api/v3/reference/events/get)
 - [Insert Event](https://developers.google.com/workspace/calendar/api/v3/reference/events/insert)
+- [Update Event](https://developers.google.com/workspace/calendar/api/v3/reference/events/update)
+- [Patch Event](https://developers.google.com/workspace/calendar/api/v3/reference/events/patch)
+- [Delete Event](https://developers.google.com/workspace/calendar/api/v3/reference/events/delete)
+- [Quick Add Event](https://developers.google.com/workspace/calendar/api/v3/reference/events/quickAdd)
+- [Free/Busy Query](https://developers.google.com/workspace/calendar/api/v3/reference/freebusy/query)

@@ -1,44 +1,27 @@
 # Claw Connect
 
-Managed OAuth connector for AI agents. Semantic actions and direct token access to Google Workspace, Microsoft 365, and Notion — all through a single API key.
+API gateway for calling third-party APIs with managed auth.
 
-## What It Does
-
-Your AI agent calls IntegraClaw's action API. IntegraClaw handles OAuth tokens, refresh, and API quirks. Your agent gets clean JSON back.
-
-```
-Agent → IntegraClaw → Google/Microsoft/Notion → IntegraClaw → Agent
-```
-
-Two modes:
-
-- **Semantic Actions** — `POST /api/v1/action` with structured params. Zero token management.
-- **Direct Tokens** — `POST /api/v1/token/get` for a fresh OAuth token. Call native APIs yourself.
+Call native API endpoints directly with a single API key.
 
 ## Quick Start
 
 ```bash
-export INTEGRACLAW_API_KEY="ic_YOUR_KEY"
-
-# Send an email
-curl -s -X POST 'http://localhost:8443/api/v1/action' \
-  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
-  -H 'Content-Type: application/json' \
-  -d '{"provider":"google","service":"gmail","action":"send_email","params":{"to":"user@example.com","subject":"Hello","body":"Sent via Claw Connect"}}'
+# List Gmail messages
+curl -s "$INTEGRACLAW_URL/gateway/google-mail/gmail/v1/users/me/messages?maxResults=5" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY"
 ```
 
-## Supported Services
+## Getting Your API Key
 
-| Google | Microsoft | Notion |
-|--------|-----------|--------|
-| Gmail | Outlook | Pages |
-| Calendar | Calendar | Databases |
-| Drive | Teams | Blocks |
-| Sheets | OneDrive | |
+1. Sign in or create an account at your IntegraClaw instance
+2. Go to Settings → API Keys
+3. Create a new key and copy it
 
-## Documentation
-
-See [SKILL.md](SKILL.md) for full documentation, cookbook examples, and API reference.
+```bash
+export INTEGRACLAW_API_KEY="ic_YOUR_KEY"
+export INTEGRACLAW_URL="http://localhost:8443"
+```
 
 ## License
 

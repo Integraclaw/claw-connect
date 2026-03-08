@@ -1,63 +1,39 @@
-# Gmail API Reference
+# Gmail Routing Reference
 
-**App name:** `google-gmail`
-**Provider:** `google` | **Service:** `gmail`
-**Base URL:** `https://gmail.googleapis.com`
+**App name:** `google-mail`
+**Base URL proxied:** `gmail.googleapis.com`
 
-## IntegraClaw Actions
+## API Path Pattern
 
-| Action | Description |
-|--------|-------------|
-| `send_email` | Send an email |
-| `list_messages` | List messages in inbox |
-| `search_messages` | Search messages with query |
-| `read_message` | Read a specific message |
-| `mark_as_read` | Mark message as read |
-| `archive` | Archive a message |
-| `list_labels` | List all labels |
-| `create_draft` | Create an email draft |
-
-### Example: Send Email
-```json
-{
-  "provider": "google",
-  "service": "gmail",
-  "action": "send_email",
-  "params": {
-    "to": "recipient@example.com",
-    "subject": "Hello!",
-    "body": "Message content"
-  }
-}
+```
+/google-mail/gmail/v1/users/me/{endpoint}
 ```
 
-## Native API Endpoints
-
-Use with `POST /api/v1/token/get` for direct API access.
+## Common Endpoints
 
 ### List Messages
 ```bash
-GET https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10
+GET /google-mail/gmail/v1/users/me/messages?maxResults=10
 ```
 
 With query filter:
 ```bash
-GET https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread&maxResults=10
+GET /google-mail/gmail/v1/users/me/messages?q=is:unread&maxResults=10
 ```
 
 ### Get Message
 ```bash
-GET https://gmail.googleapis.com/gmail/v1/users/me/messages/{messageId}
+GET /google-mail/gmail/v1/users/me/messages/{messageId}
 ```
 
 With metadata only:
 ```bash
-GET https://gmail.googleapis.com/gmail/v1/users/me/messages/{messageId}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date
+GET /google-mail/gmail/v1/users/me/messages/{messageId}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date
 ```
 
 ### Send Message
 ```bash
-POST https://gmail.googleapis.com/gmail/v1/users/me/messages/send
+POST /google-mail/gmail/v1/users/me/messages/send
 Content-Type: application/json
 
 {
@@ -67,22 +43,22 @@ Content-Type: application/json
 
 ### List Labels
 ```bash
-GET https://gmail.googleapis.com/gmail/v1/users/me/labels
+GET /google-mail/gmail/v1/users/me/labels
 ```
 
 ### List Threads
 ```bash
-GET https://gmail.googleapis.com/gmail/v1/users/me/threads?maxResults=10
+GET /google-mail/gmail/v1/users/me/threads?maxResults=10
 ```
 
 ### Get Thread
 ```bash
-GET https://gmail.googleapis.com/gmail/v1/users/me/threads/{threadId}
+GET /google-mail/gmail/v1/users/me/threads/{threadId}
 ```
 
 ### Modify Message Labels
 ```bash
-POST https://gmail.googleapis.com/gmail/v1/users/me/messages/{messageId}/modify
+POST /google-mail/gmail/v1/users/me/messages/{messageId}/modify
 Content-Type: application/json
 
 {
@@ -91,9 +67,14 @@ Content-Type: application/json
 }
 ```
 
+### Trash Message
+```bash
+POST /google-mail/gmail/v1/users/me/messages/{messageId}/trash
+```
+
 ### Create Draft
 ```bash
-POST https://gmail.googleapis.com/gmail/v1/users/me/drafts
+POST /google-mail/gmail/v1/users/me/drafts
 Content-Type: application/json
 
 {
@@ -103,9 +84,31 @@ Content-Type: application/json
 }
 ```
 
+### Update Draft
+```bash
+PUT /google-mail/gmail/v1/users/me/drafts/{draftId}
+Content-Type: application/json
+
+{
+  "message": {
+    "raw": "BASE64URL_ENCODED_EMAIL"
+  }
+}
+```
+
+### Send Draft
+```bash
+POST /google-mail/gmail/v1/users/me/drafts/send
+Content-Type: application/json
+
+{
+  "id": "{draftId}"
+}
+```
+
 ### Get Profile
 ```bash
-GET https://gmail.googleapis.com/gmail/v1/users/me/profile
+GET /google-mail/gmail/v1/users/me/profile
 ```
 
 ## Query Operators
@@ -122,12 +125,22 @@ Use in the `q` parameter:
 
 ## Notes
 
+- Authentication is automatic - IntegraClaw injects the OAuth token
 - Use `me` as userId for the authenticated user
 - Message body is base64url encoded in the `raw` field
-- IntegraClaw actions handle encoding/decoding automatically
 
 ## Resources
 
 - [API Overview](https://developers.google.com/gmail/api/reference/rest)
 - [List Messages](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/list)
+- [Get Message](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/get)
 - [Send Message](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/send)
+- [Modify Message Labels](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/modify)
+- [Trash Message](https://developers.google.com/gmail/api/reference/rest/v1/users.messages/trash)
+- [List Threads](https://developers.google.com/gmail/api/reference/rest/v1/users.threads/list)
+- [Get Thread](https://developers.google.com/gmail/api/reference/rest/v1/users.threads/get)
+- [List Labels](https://developers.google.com/gmail/api/reference/rest/v1/users.labels/list)
+- [Create Draft](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/create)
+- [Update Draft](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/update)
+- [Send Draft](https://developers.google.com/gmail/api/reference/rest/v1/users.drafts/send)
+- [Get Profile](https://developers.google.com/gmail/api/reference/rest/v1/users/getProfile)

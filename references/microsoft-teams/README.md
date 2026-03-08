@@ -1,96 +1,306 @@
-# Microsoft Teams API Reference
+# Microsoft Teams Routing Reference
 
 **App name:** `microsoft-teams`
-**Provider:** `microsoft` | **Service:** `teams`
-**Base URL:** `https://graph.microsoft.com/v1.0`
+**Base URL proxied:** `graph.microsoft.com`
 
-## IntegraClaw Actions
+## API Path Pattern
 
-| Action | Description |
-|--------|-------------|
-| `list_teams` | List joined teams |
-| `list_channels` | List channels in a team |
-| `send_channel_message` | Send a message to a channel |
-| `list_channel_messages` | List messages in a channel |
+```
+/microsoft-teams/v1.0/{resource}
+```
 
-### Example: Send Channel Message
-```json
+## Common Endpoints
+
+### Teams
+
+#### List Joined Teams
+```bash
+GET /microsoft-teams/v1.0/me/joinedTeams
+```
+
+#### Get Team
+```bash
+GET /microsoft-teams/v1.0/teams/{team-id}
+```
+
+### Channels
+
+#### List Channels
+```bash
+GET /microsoft-teams/v1.0/teams/{team-id}/channels
+```
+
+#### List Private Channels
+```bash
+GET /microsoft-teams/v1.0/teams/{team-id}/channels?$filter=membershipType eq 'private'
+```
+
+#### Get Channel
+```bash
+GET /microsoft-teams/v1.0/teams/{team-id}/channels/{channel-id}
+```
+
+#### Create Channel
+```bash
+POST /microsoft-teams/v1.0/teams/{team-id}/channels
+Content-Type: application/json
+
 {
-  "provider": "microsoft",
-  "service": "teams",
-  "action": "send_channel_message",
-  "params": {
-    "team_id": "TEAM_ID",
-    "channel_id": "CHANNEL_ID",
-    "content": "Hello from IntegraClaw!"
+  "displayName": "Channel Name",
+  "description": "Description",
+  "membershipType": "standard"
+}
+```
+
+#### Update Channel
+```bash
+PATCH /microsoft-teams/v1.0/teams/{team-id}/channels/{channel-id}
+Content-Type: application/json
+
+{
+  "description": "Updated description"
+}
+```
+
+#### Delete Channel
+```bash
+DELETE /microsoft-teams/v1.0/teams/{team-id}/channels/{channel-id}
+```
+
+### Channel Members
+
+#### List Channel Members
+```bash
+GET /microsoft-teams/v1.0/teams/{team-id}/channels/{channel-id}/members
+```
+
+### Messages
+
+#### List Channel Messages
+```bash
+GET /microsoft-teams/v1.0/teams/{team-id}/channels/{channel-id}/messages
+```
+
+#### Send Message
+```bash
+POST /microsoft-teams/v1.0/teams/{team-id}/channels/{channel-id}/messages
+Content-Type: application/json
+
+{
+  "body": {
+    "content": "Hello World"
   }
 }
 ```
 
-## Native API Endpoints
-
-### List Joined Teams
+#### Send HTML Message
 ```bash
-GET https://graph.microsoft.com/v1.0/me/joinedTeams
-```
-
-### Get Team
-```bash
-GET https://graph.microsoft.com/v1.0/teams/{team-id}
-```
-
-### List Channels
-```bash
-GET https://graph.microsoft.com/v1.0/teams/{team-id}/channels
-```
-
-### List Channel Messages
-```bash
-GET https://graph.microsoft.com/v1.0/teams/{team-id}/channels/{channel-id}/messages
-```
-
-### Send Channel Message
-```bash
-POST https://graph.microsoft.com/v1.0/teams/{team-id}/channels/{channel-id}/messages
+POST /microsoft-teams/v1.0/teams/{team-id}/channels/{channel-id}/messages
 Content-Type: application/json
 
-{"body": {"content": "Hello World"}}
+{
+  "body": {
+    "contentType": "html",
+    "content": "<p>Formatted message</p>"
+  }
+}
 ```
 
-### Reply to Message
+#### Reply to Message
 ```bash
-POST https://graph.microsoft.com/v1.0/teams/{team-id}/channels/{channel-id}/messages/{message-id}/replies
+POST /microsoft-teams/v1.0/teams/{team-id}/channels/{channel-id}/messages/{message-id}/replies
 Content-Type: application/json
 
-{"body": {"content": "Reply content"}}
+{
+  "body": {
+    "content": "Reply content"
+  }
+}
 ```
 
-### List Chats
+#### List Message Replies
 ```bash
-GET https://graph.microsoft.com/v1.0/me/chats
+GET /microsoft-teams/v1.0/teams/{team-id}/channels/{channel-id}/messages/{message-id}/replies
 ```
 
-### Send Chat Message
+#### Edit Message
 ```bash
-POST https://graph.microsoft.com/v1.0/chats/{chat-id}/messages
+PATCH /microsoft-teams/v1.0/teams/{team-id}/channels/{channel-id}/messages/{message-id}
 Content-Type: application/json
 
-{"body": {"content": "Hello"}}
+{
+  "body": {
+    "content": "Updated message content"
+  }
+}
 ```
 
-### Get User Presence
+### Team Members
+
+#### List Members
 ```bash
-GET https://graph.microsoft.com/v1.0/me/presence
+GET /microsoft-teams/v1.0/teams/{team-id}/members
 ```
+
+### Presence
+
+#### Get User Presence
+```bash
+GET /microsoft-teams/v1.0/me/presence
+```
+
+#### Get User Presence by ID
+```bash
+GET /microsoft-teams/v1.0/users/{user-id}/presence
+```
+
+### Tabs
+
+#### List Channel Tabs
+```bash
+GET /microsoft-teams/v1.0/teams/{team-id}/channels/{channel-id}/tabs
+```
+
+### Apps
+
+#### List Installed Apps
+```bash
+GET /microsoft-teams/v1.0/teams/{team-id}/installedApps
+```
+
+### Online Meetings
+
+#### Create Meeting
+```bash
+POST /microsoft-teams/v1.0/me/onlineMeetings
+Content-Type: application/json
+
+{
+  "subject": "Team Sync",
+  "startDateTime": "2026-02-18T10:00:00Z",
+  "endDateTime": "2026-02-18T11:00:00Z"
+}
+```
+
+#### Create Meeting with Attendees
+```bash
+POST /microsoft-teams/v1.0/me/onlineMeetings
+Content-Type: application/json
+
+{
+  "subject": "Project Review",
+  "startDateTime": "2026-02-18T14:00:00Z",
+  "endDateTime": "2026-02-18T15:00:00Z",
+  "participants": {
+    "attendees": [
+      {
+        "upn": "attendee@example.com",
+        "role": "attendee"
+      }
+    ]
+  }
+}
+```
+
+#### Get Meeting
+```bash
+GET /microsoft-teams/v1.0/me/onlineMeetings/{meeting-id}
+```
+
+#### Find Meeting by Join URL
+```bash
+GET /microsoft-teams/v1.0/me/onlineMeetings?$filter=JoinWebUrl eq '{encoded-join-url}'
+```
+
+#### Delete Meeting
+```bash
+DELETE /microsoft-teams/v1.0/me/onlineMeetings/{meeting-id}
+```
+
+#### List Calendar Events
+```bash
+GET /microsoft-teams/v1.0/me/calendar/events?$top=10
+```
+
+#### List Meeting Recordings
+```bash
+GET /microsoft-teams/v1.0/me/onlineMeetings/{meeting-id}/recordings
+```
+
+#### Get Meeting Recording
+```bash
+GET /microsoft-teams/v1.0/me/onlineMeetings/{meeting-id}/recordings/{recording-id}
+```
+
+#### List Meeting Transcripts
+```bash
+GET /microsoft-teams/v1.0/me/onlineMeetings/{meeting-id}/transcripts
+```
+
+#### Get Meeting Transcript
+```bash
+GET /microsoft-teams/v1.0/me/onlineMeetings/{meeting-id}/transcripts/{transcript-id}
+```
+
+#### List Attendance Reports
+```bash
+GET /microsoft-teams/v1.0/me/onlineMeetings/{meeting-id}/attendanceReports
+```
+
+#### Get Attendance Report
+```bash
+GET /microsoft-teams/v1.0/me/onlineMeetings/{meeting-id}/attendanceReports/{report-id}
+```
+
+### Chats
+
+#### List Chats
+```bash
+GET /microsoft-teams/v1.0/me/chats
+```
+
+#### Get Chat
+```bash
+GET /microsoft-teams/v1.0/chats/{chat-id}
+```
+
+#### List Chat Messages
+```bash
+GET /microsoft-teams/v1.0/chats/{chat-id}/messages
+```
+
+#### Send Chat Message
+```bash
+POST /microsoft-teams/v1.0/chats/{chat-id}/messages
+Content-Type: application/json
+
+{
+  "body": {
+    "content": "Hello"
+  }
+}
+```
+
+## OData Query Parameters
+
+- `$top=10` - Limit results
+- `$skip=20` - Skip results
+- `$select=id,displayName` - Select specific fields
+- `$filter=membershipType eq 'private'` - Filter results
+- `$orderby=displayName` - Sort results
 
 ## Notes
 
-- Uses Microsoft Graph API
+- Uses Microsoft Graph API (`graph.microsoft.com`)
 - Channel IDs include thread suffix: `19:xxx@thread.tacv2`
 - Message body content types: `text` or `html`
-- Supports OData query parameters
+- Channel membership types: `standard`, `private`, `shared`
+- Supports OData query parameters for filtering and pagination
+- Meeting recordings/transcripts available after meeting ends
 
 ## Resources
 
-- [Teams API Overview](https://learn.microsoft.com/en-us/graph/api/resources/teams-api-overview)
-- [Microsoft Graph API](https://learn.microsoft.com/en-us/graph/api/overview)
+- [Microsoft Teams API Overview](https://learn.microsoft.com/en-us/graph/api/resources/teams-api-overview)
+- [Microsoft Graph API Reference](https://learn.microsoft.com/en-us/graph/api/overview)
+- [Channel Resource](https://learn.microsoft.com/en-us/graph/api/resources/channel)
+- [ChatMessage Resource](https://learn.microsoft.com/en-us/graph/api/resources/chatmessage)

@@ -1,64 +1,70 @@
-# Google Drive API Reference
+# Google Drive Routing Reference
 
 **App name:** `google-drive`
-**Provider:** `google` | **Service:** `drive`
-**Base URL:** `https://www.googleapis.com/drive/v3`
+**Base URL proxied:** `www.googleapis.com`
 
-## IntegraClaw Actions
+## API Path Pattern
 
-| Action | Description |
-|--------|-------------|
-| `list_files` | List files and folders |
-| `search_files` | Search files by query |
-| `get_file` | Get file metadata |
-| `download_file` | Download file content |
-| `create_folder` | Create a new folder |
-| `upload_file` | Upload a file |
-| `share_file` | Share a file with someone |
-
-### Example: List Files
-```json
-{
-  "provider": "google",
-  "service": "drive",
-  "action": "list_files",
-  "params": {
-    "page_size": 10,
-    "query": "name contains 'report'"
-  }
-}
+```
+/google-drive/drive/v3/{endpoint}
 ```
 
-## Native API Endpoints
+## Common Endpoints
 
 ### List Files
 ```bash
-GET https://www.googleapis.com/drive/v3/files?pageSize=10&fields=files(id,name,mimeType,createdTime,modifiedTime,size)
+GET /google-drive/drive/v3/files?pageSize=10
 ```
 
-### Search Files
+With query:
 ```bash
-GET https://www.googleapis.com/drive/v3/files?q=name%20contains%20'report'&pageSize=10
+GET /google-drive/drive/v3/files?q=name%20contains%20'report'&pageSize=10
+```
+
+Only folders:
+```bash
+GET /google-drive/drive/v3/files?q=mimeType='application/vnd.google-apps.folder'
+```
+
+Files in specific folder:
+```bash
+GET /google-drive/drive/v3/files?q='FOLDER_ID'+in+parents
+```
+
+With fields:
+```bash
+GET /google-drive/drive/v3/files?fields=files(id,name,mimeType,createdTime,modifiedTime,size)
 ```
 
 ### Get File Metadata
 ```bash
-GET https://www.googleapis.com/drive/v3/files/{fileId}?fields=id,name,mimeType,size,createdTime
+GET /google-drive/drive/v3/files/{fileId}?fields=id,name,mimeType,size,createdTime
 ```
 
 ### Download File Content
 ```bash
-GET https://www.googleapis.com/drive/v3/files/{fileId}?alt=media
+GET /google-drive/drive/v3/files/{fileId}?alt=media
 ```
 
-### Export Google Docs (to PDF)
+### Export Google Docs (to PDF, DOCX, etc.)
 ```bash
-GET https://www.googleapis.com/drive/v3/files/{fileId}/export?mimeType=application/pdf
+GET /google-drive/drive/v3/files/{fileId}/export?mimeType=application/pdf
+```
+
+### Create File (metadata only)
+```bash
+POST /google-drive/drive/v3/files
+Content-Type: application/json
+
+{
+  "name": "New Document",
+  "mimeType": "application/vnd.google-apps.document"
+}
 ```
 
 ### Create Folder
 ```bash
-POST https://www.googleapis.com/drive/v3/files
+POST /google-drive/drive/v3/files
 Content-Type: application/json
 
 {
@@ -69,7 +75,7 @@ Content-Type: application/json
 
 ### Update File Metadata
 ```bash
-PATCH https://www.googleapis.com/drive/v3/files/{fileId}
+PATCH /google-drive/drive/v3/files/{fileId}
 Content-Type: application/json
 
 {
@@ -77,14 +83,29 @@ Content-Type: application/json
 }
 ```
 
-### Delete File
+### Move File to Folder
 ```bash
-DELETE https://www.googleapis.com/drive/v3/files/{fileId}
+PATCH /google-drive/drive/v3/files/{fileId}?addParents=NEW_FOLDER_ID&removeParents=OLD_FOLDER_ID
 ```
 
-### Share File
+### Delete File
 ```bash
-POST https://www.googleapis.com/drive/v3/files/{fileId}/permissions
+DELETE /google-drive/drive/v3/files/{fileId}
+```
+
+### Copy File
+```bash
+POST /google-drive/drive/v3/files/{fileId}/copy
+Content-Type: application/json
+
+{
+  "name": "Copy of File"
+}
+```
+
+### Create Permission (Share File)
+```bash
+POST /google-drive/drive/v3/files/{fileId}/permissions
 Content-Type: application/json
 
 {
@@ -92,6 +113,56 @@ Content-Type: application/json
   "type": "user",
   "emailAddress": "user@example.com"
 }
+```
+
+## File Uploads
+
+Upload endpoints use a different path pattern: `/google-drive/upload/drive/v3/files`
+
+### Simple Upload (up to 5MB)
+```bash
+POST /google-drive/upload/drive/v3/files?uploadType=media
+Content-Type: text/plain
+
+<file content>
+```
+
+### Multipart Upload (with metadata, up to 5MB)
+```bash
+POST /google-drive/upload/drive/v3/files?uploadType=multipart
+Content-Type: multipart/related; boundary=boundary
+
+--boundary
+Content-Type: application/json
+
+{"name": "myfile.txt"}
+--boundary
+Content-Type: text/plain
+
+<file content>
+--boundary--
+```
+
+### Resumable Upload (for large files)
+```bash
+# Step 1: Initiate session
+POST /google-drive/upload/drive/v3/files?uploadType=resumable
+Content-Type: application/json
+X-Upload-Content-Type: application/octet-stream
+X-Upload-Content-Length: <file_size>
+
+{"name": "large_file.bin"}
+
+# Response includes Location header with upload URI
+# Step 2: Upload content to that URI
+```
+
+### Update File Content
+```bash
+PATCH /google-drive/upload/drive/v3/files/{fileId}?uploadType=media
+Content-Type: text/plain
+
+<new file content>
 ```
 
 ## Query Operators
@@ -104,15 +175,39 @@ Use in the `q` parameter:
 - `trashed = false`
 - `modifiedTime > '2024-01-01T00:00:00'`
 
+Combine with `and`:
+```
+name contains 'report' and mimeType = 'application/pdf'
+```
+
 ## Common MIME Types
 
 - `application/vnd.google-apps.document` - Google Docs
 - `application/vnd.google-apps.spreadsheet` - Google Sheets
 - `application/vnd.google-apps.presentation` - Google Slides
 - `application/vnd.google-apps.folder` - Folder
+- `application/pdf` - PDF
+
+## Notes
+
+- Authentication is automatic - IntegraClaw injects the OAuth token
+- Use `fields` parameter to limit response data
+- Pagination uses `pageToken` from previous response's `nextPageToken`
+- Upload endpoints use `/upload/drive/v3/files` path (note the `/upload` prefix)
+- Use `uploadType=resumable` for files larger than 5MB
+- Resumable uploads support chunking (256KB minimum, 5MB recommended)
 
 ## Resources
 
-- [API Overview](https://developers.google.com/workspace/drive/api/reference/rest/v3)
+- [API Overview](https://developers.google.com/workspace/drive/api/reference/rest/v3#rest-resource:-v3.about)
 - [List Files](https://developers.google.com/drive/api/reference/rest/v3/files/list)
-- [Search Files](https://developers.google.com/drive/api/guides/search-files)
+- [Get File](https://developers.google.com/drive/api/reference/rest/v3/files/get)
+- [Create File](https://developers.google.com/drive/api/reference/rest/v3/files/create)
+- [Update File](https://developers.google.com/drive/api/reference/rest/v3/files/update)
+- [Delete File](https://developers.google.com/drive/api/reference/rest/v3/files/delete)
+- [Copy File](https://developers.google.com/drive/api/reference/rest/v3/files/copy)
+- [Export File](https://developers.google.com/drive/api/reference/rest/v3/files/export)
+- [Upload Files](https://developers.google.com/drive/api/guides/manage-uploads)
+- [Resumable Uploads](https://developers.google.com/drive/api/guides/manage-uploads#resumable)
+- [Create Permission](https://developers.google.com/workspace/drive/api/reference/rest/v3/permissions/create)
+- [Search Query Syntax](https://developers.google.com/drive/api/guides/search-files)
