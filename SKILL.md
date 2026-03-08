@@ -36,41 +36,41 @@ Your Agent                    IntegraClaw                   Third-Party API
 
 ```bash
 export INTEGRACLAW_API_KEY="ic_YOUR_KEY"
-export INTEGRACLAW_URL="http://localhost:8443"  # your server
+export INTEGRACLAW_URL="http://localhost:8443"
 ```
 
 ### 1. Connect a Service
 
 ```bash
-python <<'EOF'
-import urllib.request, os, json
-url = f'{os.environ["INTEGRACLAW_URL"]}/api/v1/connect/start'
-data = json.dumps({"provider": "google", "service": "gmail"}).encode()
-req = urllib.request.Request(url, data=data, method='POST')
-req.add_header('Authorization', f'Bearer {os.environ["INTEGRACLAW_API_KEY"]}')
-req.add_header('Content-Type', 'application/json')
-result = json.load(urllib.request.urlopen(req))
-print(f"Authorize here: {result['connect_url']}")
-EOF
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/connect/start" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"provider": "google", "service": "gmail"}'
 ```
 
-The user opens the URL, authorizes with Google/Microsoft/Notion, and the connection is active.
+Response:
+```json
+{
+  "session_id": "abc123-...",
+  "connect_url": "http://localhost:8443/connect/gmail?session_token=...",
+  "expires_in": 600
+}
+```
+
+The user opens `connect_url` in a browser, authorizes with Google/Microsoft/Notion, and the connection is active.
 
 ### 2. Use It
 
 ```bash
-python <<'EOF'
-import urllib.request, os, json
-url = f'{os.environ["INTEGRACLAW_URL"]}/api/v1/action'
-data = json.dumps({
-    "provider": "google", "service": "gmail", "action": "send_email",
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "gmail",
+    "action": "send_email",
     "params": {"to": "team@company.com", "subject": "Weekly Report", "body": "Attached."}
-}).encode()
-req = urllib.request.Request(url, data=data, method='POST')
-req.add_header('Authorization', f'Bearer {os.environ["INTEGRACLAW_API_KEY"]}')
-req.add_header('Content-Type', 'application/json')
-print(json.dumps(json.load(urllib.request.urlopen(req)), indent=2))
-EOF
+  }'
 ```
 
 That's it. Token refresh, error handling, and API encoding are handled automatically.
@@ -79,18 +79,17 @@ That's it. Token refresh, error handling, and API encoding are handled automatic
 
 ### Execute an Action
 
-```
-POST /api/v1/action
-Authorization: Bearer $INTEGRACLAW_API_KEY
-Content-Type: application/json
-
-{
-  "provider": "google",
-  "service": "gmail",
-  "action": "send_email",
-  "params": { "to": "...", "subject": "...", "body": "..." },
-  "connection_id": "optional — auto-resolved if omitted"
-}
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "gmail",
+    "action": "send_email",
+    "params": {"to": "...", "subject": "...", "body": "..."},
+    "connection_id": "optional — auto-resolved if omitted"
+  }'
 ```
 
 **Response:**
@@ -102,53 +101,49 @@ Content-Type: application/json
 
 List all available actions with full JSON Schema:
 
-```
-GET /api/v1/tools
-GET /api/v1/tools?app=google-gmail
+```bash
+curl -s "$INTEGRACLAW_URL/api/v1/tools" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY"
+
+# Filter by app
+curl -s "$INTEGRACLAW_URL/api/v1/tools?app=google-gmail" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY"
 ```
 
 Compact list (no schemas):
 
-```
-GET /api/v1/actions
-GET /api/v1/actions?app=google-gmail
+```bash
+curl -s "$INTEGRACLAW_URL/api/v1/actions" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY"
 ```
 
 ## Direct Token Access
 
 When pre-built actions aren't enough, get a fresh OAuth token:
 
-```
-POST /api/v1/token/get
-Authorization: Bearer $INTEGRACLAW_API_KEY
-Content-Type: application/json
-
-{"connection_id": "CONNECTION_ID"}
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/token/get" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"connection_id": "CONNECTION_ID"}'
 ```
 
 ```json
 {"access_token": "ya29.a0AfH6SM...", "expires_in": 3600, "token_type": "Bearer"}
 ```
 
-Then call the native API directly:
+Then call the native API directly with the token:
 
 ```bash
-python <<'EOF'
-import urllib.request, os, json
-
 # Get token
-url = f'{os.environ["INTEGRACLAW_URL"]}/api/v1/token/get'
-data = json.dumps({"connection_id": "CONNECTION_ID"}).encode()
-req = urllib.request.Request(url, data=data, method='POST')
-req.add_header('Authorization', f'Bearer {os.environ["INTEGRACLAW_API_KEY"]}')
-req.add_header('Content-Type', 'application/json')
-token = json.load(urllib.request.urlopen(req))["access_token"]
+TOKEN=$(curl -s -X POST "$INTEGRACLAW_URL/api/v1/token/get" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"connection_id": "CONNECTION_ID"}' | jq -r '.access_token')
 
-# Call Gmail directly
-req = urllib.request.Request('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=5')
-req.add_header('Authorization', f'Bearer {token}')
-print(json.dumps(json.load(urllib.request.urlopen(req)), indent=2))
-EOF
+# Call Gmail API directly
+curl -s "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=5" \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 See [references/](references/) for native API guides per service.
@@ -157,17 +152,20 @@ See [references/](references/) for native API guides per service.
 
 ### Create
 
-```
-POST /api/v1/connect/start
-{"provider": "google", "service": "gmail"}
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/connect/start" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"provider": "google", "service": "gmail"}'
 ```
 
 Returns `connect_url` — open in browser to authorize. Optional `scopes` array to override defaults.
 
 ### Poll Status
 
-```
-GET /api/v1/connect/status/{session_id}
+```bash
+curl -s "$INTEGRACLAW_URL/api/v1/connect/status/{session_id}" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY"
 ```
 
 Returns `pending`, `completed`, `failed`, or `expired`. On `completed`, includes `connection_id`.
@@ -180,14 +178,16 @@ ws://{host}/ws/connect/{session_id}?token=INTEGRACLAW_API_KEY
 
 ### List
 
-```
-GET /api/v1/connections
+```bash
+curl -s "$INTEGRACLAW_URL/api/v1/connections" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY"
 ```
 
 ### Remove
 
-```
-DELETE /api/v1/connections/{connection_id}
+```bash
+curl -s -X DELETE "$INTEGRACLAW_URL/api/v1/connections/{connection_id}" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY"
 ```
 
 ### Multiple Connections
@@ -224,70 +224,143 @@ If you have multiple connections for the same service, pass `connection_id` in t
 
 ## Cookbook
 
-### Send email, then log it to a spreadsheet
+### Send email via Gmail
 
-```python
-import os, json, urllib.request
-
-API = os.environ["INTEGRACLAW_URL"] + "/api/v1/action"
-KEY = os.environ["INTEGRACLAW_API_KEY"]
-
-def action(provider, service, act, params):
-    data = json.dumps({"provider": provider, "service": service, "action": act, "params": params}).encode()
-    req = urllib.request.Request(API, data=data, method='POST')
-    req.add_header('Authorization', f'Bearer {KEY}')
-    req.add_header('Content-Type', 'application/json')
-    return json.load(urllib.request.urlopen(req))
-
-# 1. Send email
-action("google", "gmail", "send_email", {
-    "to": "client@example.com",
-    "subject": "Invoice #1234",
-    "body": "Please find your invoice attached."
-})
-
-# 2. Log to spreadsheet
-action("google", "sheets", "append_values", {
-    "spreadsheet_id": "SHEET_ID",
-    "range": "Log!A:C",
-    "values": [["2026-03-08", "client@example.com", "Invoice #1234"]]
-})
-```
-
-### Cross-platform: Google Calendar → Teams notification
-
-```python
-# 1. Get today's events
-events = action("google", "calendar", "list_events", {
-    "time_min": "2026-03-08T00:00:00Z",
-    "time_max": "2026-03-08T23:59:59Z"
-})
-
-# 2. Post summary to Teams
-summary = "\n".join(e["summary"] for e in events["data"].get("items", []))
-action("microsoft", "teams", "send_channel_message", {
-    "team_id": "TEAM_ID",
-    "channel_id": "CHANNEL_ID",
-    "content": f"Today's meetings:\n{summary}"
-})
-```
-
-### Notion as a CRM: add contact from email
-
-```python
-# 1. Read email
-email = action("google", "gmail", "read_message", {"message_id": "MSG_ID"})
-
-# 2. Add to Notion database
-action("notion", "databases", "query_database", {"database_id": "CRM_DB_ID"})
-action("notion", "pages", "create_page", {
-    "parent_id": "CRM_DB_ID",
-    "properties": {
-        "Name": {"title": [{"text": {"content": email["data"]["from"]}}]},
-        "Email": {"email": email["data"]["from"]},
-        "Source": {"select": {"name": "Inbound"}}
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "gmail",
+    "action": "send_email",
+    "params": {
+      "to": "client@example.com",
+      "subject": "Invoice #1234",
+      "body": "Please find your invoice attached."
     }
-})
+  }'
+```
+
+### Create a Google Calendar event
+
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "calendar",
+    "action": "create_event",
+    "params": {
+      "summary": "Team Meeting",
+      "start_time": "2026-03-10T10:00:00Z",
+      "end_time": "2026-03-10T11:00:00Z",
+      "description": "Weekly sync"
+    }
+  }'
+```
+
+### Read values from Google Sheets
+
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google",
+    "service": "sheets",
+    "action": "get_values",
+    "params": {"spreadsheet_id": "SPREADSHEET_ID", "range": "Sheet1!A1:D10"}
+  }'
+```
+
+### Log to a spreadsheet after sending email
+
+```bash
+# 1. Send email
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google", "service": "gmail", "action": "send_email",
+    "params": {"to": "client@example.com", "subject": "Invoice #1234", "body": "Hello!"}
+  }'
+
+# 2. Append row to tracking sheet
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "google", "service": "sheets", "action": "append_values",
+    "params": {
+      "spreadsheet_id": "SHEET_ID",
+      "range": "Log!A:C",
+      "values": [["2026-03-08", "client@example.com", "Invoice #1234"]]
+    }
+  }'
+```
+
+### Send a Microsoft Teams message
+
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "microsoft",
+    "service": "teams",
+    "action": "send_channel_message",
+    "params": {
+      "team_id": "TEAM_ID",
+      "channel_id": "CHANNEL_ID",
+      "content": "Deploy complete!"
+    }
+  }'
+```
+
+### Query a Notion database
+
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "notion",
+    "service": "databases",
+    "action": "query_database",
+    "params": {"database_id": "DATABASE_ID"}
+  }'
+```
+
+### Create a Notion page from email data
+
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "notion",
+    "service": "pages",
+    "action": "create_page",
+    "params": {
+      "parent_id": "CRM_DB_ID",
+      "properties": {
+        "Name": {"title": [{"text": {"content": "John Doe"}}]},
+        "Email": {"email": "john@example.com"},
+        "Source": {"select": {"name": "Inbound"}}
+      }
+    }
+  }'
+```
+
+### List OneDrive files
+
+```bash
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"provider": "microsoft", "service": "onedrive", "action": "list_files", "params": {}}'
 ```
 
 ## Error Reference
@@ -307,12 +380,19 @@ Error response:
 
 ### Expired OAuth Token
 
-If actions return 500 "token refresh failed", the OAuth grant was revoked. Delete and recreate the connection:
+If actions return 500 "token refresh failed", the OAuth grant was revoked. Delete and recreate:
 
 ```bash
-# DELETE /api/v1/connections/{id}
-# POST /api/v1/connect/start {"provider": "google", "service": "gmail"}
-# Open connect_url in browser
+# Remove old connection
+curl -s -X DELETE "$INTEGRACLAW_URL/api/v1/connections/{id}" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY"
+
+# Create new one
+curl -s -X POST "$INTEGRACLAW_URL/api/v1/connect/start" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"provider": "google", "service": "gmail"}'
+# Open connect_url in browser to re-authorize
 ```
 
 ## Native API References
@@ -348,6 +428,22 @@ const res = await fetch(`${process.env.INTEGRACLAW_URL}/api/v1/action`, {
 const data = await res.json();
 ```
 
+### Python
+
+```python
+import os, requests
+
+resp = requests.post(
+    f'{os.environ["INTEGRACLAW_URL"]}/api/v1/action',
+    headers={'Authorization': f'Bearer {os.environ["INTEGRACLAW_API_KEY"]}'},
+    json={
+        'provider': 'google', 'service': 'gmail', 'action': 'send_email',
+        'params': {'to': 'user@example.com', 'subject': 'Hi', 'body': 'Hello!'}
+    }
+)
+data = resp.json()
+```
+
 ### Go
 
 ```go
@@ -359,13 +455,4 @@ req, _ := http.NewRequest("POST", os.Getenv("INTEGRACLAW_URL")+"/api/v1/action",
 req.Header.Set("Authorization", "Bearer "+os.Getenv("INTEGRACLAW_API_KEY"))
 req.Header.Set("Content-Type", "application/json")
 resp, _ := http.DefaultClient.Do(req)
-```
-
-### curl
-
-```bash
-curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
-  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"provider":"google","service":"gmail","action":"list_messages","params":{"max_results":5}}'
 ```
