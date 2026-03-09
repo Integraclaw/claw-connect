@@ -1,36 +1,34 @@
 # Claw Connect
 
-Managed OAuth connector for AI agents. Call third-party APIs with a single API key.
-
-IntegraClaw handles OAuth tokens, refresh, and API integration. Your agent sends structured actions and gets clean JSON back.
+API gateway with managed auth. Connect your AI to Google Workspace, Microsoft 365, Slack, HubSpot, Salesforce, Jira, Stripe, Notion, and more with a single API key.
 
 ## Quick Start
 
 ```bash
-export INTEGRACLAW_URL="http://localhost:8443"
-export INTEGRACLAW_API_KEY="ic_YOUR_KEY"
+# List available connections
+curl -s "$INTEGRACLAW_URL/api/v1/connections" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY"
 
-# Send an email via Gmail
+# Call an action (see references/ for params)
 curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
   -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "provider": "google",
-    "service": "gmail",
-    "action": "send_email",
-    "params": {"to": "user@example.com", "subject": "Hello!", "body": "Sent via IntegraClaw"}
-  }'
+  -d '{"provider":"google","service":"gmail","action":"send_email","params":{"to":"user@example.com","subject":"Hello!","body":"Sent via IntegraClaw"}}'
 ```
 
-## Getting Your API Key
+## How It Works
 
-1. Sign in at your IntegraClaw instance
-2. Go to Settings → API Keys
-3. Create a new key and copy it
+1. **Users connect services** through the IntegraClaw dashboard (OAuth or API key)
+2. **Agent lists connections** — `GET /api/v1/connections`
+3. **Agent calls actions** — `POST /api/v1/action` (see [references/](references/) for each service)
 
-```bash
-export INTEGRACLAW_API_KEY="ic_YOUR_KEY"
-```
+The agent never manages OAuth, tokens, or connection setup. IntegraClaw handles all token management automatically.
+
+## Supported Services (40+)
+
+Google Workspace (17), Microsoft 365 (4), Notion (3), Slack, HubSpot, Salesforce, Jira, Calendly, Asana, Monday, Pipedrive, Typeform, Airtable, QuickBooks, Box, Stripe, Trello, WhatsApp, ClickUp, ContaAzul, Kommo, ActiveCampaign, Klaviyo, Apollo, Brevo, Beehiiv, Baserow, Cal.com, CallRail, Chargebee, ClickSend, ClickFunnels, Attio, Acuity, Basecamp.
+
+See [SKILL.md](SKILL.md) for the full table with app names and actions, and [references/](references/) for detailed action guides per service.
 
 ## License
 
