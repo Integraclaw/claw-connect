@@ -2,6 +2,21 @@
 
 API gateway with managed auth. Connect your AI to Google Workspace (Gmail, Calendar, Drive, Sheets, Docs, Meet, YouTube, and more) with a single API key.
 
+## Setup
+
+1. Create an account at [https://integraclaw.dev/register](https://integraclaw.dev/register)
+2. Create an API key at [https://integraclaw.dev/dashboard/api-keys](https://integraclaw.dev/dashboard/api-keys)
+3. Set environment variables:
+
+```bash
+export INTEGRACLAW_URL="https://integraclaw.dev"
+export INTEGRACLAW_API_KEY="ic_YOUR_KEY_HERE"
+```
+
+4. Connect services at [https://integraclaw.dev/dashboard/connections](https://integraclaw.dev/dashboard/connections) — click "+ Connect" on any Google service, authorize via OAuth popup.
+
+See [SKILL.md](SKILL.md) for the full setup guide with verification steps.
+
 ## Quick Start
 
 ```bash

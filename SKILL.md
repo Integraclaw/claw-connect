@@ -21,6 +21,66 @@ Semantic actions for Google Workspace APIs using managed OAuth connections, prov
 
 IMPORTANT: Connections are managed by users through the Integraclaw dashboard. The agent's role is to **list available connections** and **call actions** using the references for each service. The agent never manages OAuth flows, tokens, or connection setup.
 
+## Setup
+
+Follow these steps to configure Integraclaw for the first time. If the user already has `INTEGRACLAW_URL` and `INTEGRACLAW_API_KEY` set, skip to [Quick Start](#quick-start).
+
+### Step 1 — Create an account
+
+Go to [https://integraclaw.dev/register](https://integraclaw.dev/register) and create a free account. If the user already has an account, sign in at [https://integraclaw.dev/login](https://integraclaw.dev/login).
+
+### Step 2 — Create an API key
+
+1. Open the dashboard: [https://integraclaw.dev/dashboard/api-keys](https://integraclaw.dev/dashboard/api-keys)
+2. Click **"Create New Key"**
+3. Give it a name (e.g. "DevClaw", "OpenClaw", "My Agent")
+4. **Copy the key immediately** — it starts with `ic_` and is only shown once
+
+### Step 3 — Set environment variables
+
+```bash
+export INTEGRACLAW_URL="https://integraclaw.dev"
+export INTEGRACLAW_API_KEY="ic_YOUR_KEY_HERE"
+```
+
+For persistent configuration, add these to your shell profile (`~/.bashrc`, `~/.zshrc`) or your agent's `.env` file.
+
+### Step 4 — Connect a Google service
+
+1. Open [https://integraclaw.dev/dashboard/connections](https://integraclaw.dev/dashboard/connections)
+2. Find the service you want (Gmail, Calendar, Drive, Sheets, etc.)
+3. Click **"+ Connect"** on the service card
+4. A popup opens with Google's OAuth consent screen
+5. Sign in with your Google account and grant the requested permissions
+6. The popup closes automatically — the service is now connected
+
+Repeat for each Google service you want to use.
+
+### Step 5 — Verify
+
+```bash
+curl -s "$INTEGRACLAW_URL/api/v1/connections" \
+  -H "Authorization: Bearer $INTEGRACLAW_API_KEY"
+```
+
+You should see your connected services:
+
+```json
+[
+  {
+    "id": "...",
+    "provider": "google",
+    "service": "gmail",
+    "email": "user@gmail.com",
+    "status": "connected"
+  }
+]
+```
+
+If the response is an empty array `[]`, no services are connected yet — go back to Step 4.
+
+If you get a 401 error, check that `INTEGRACLAW_API_KEY` is set correctly.
+
 ## Quick Start
 
 ```bash
@@ -52,7 +112,7 @@ Authorization: Bearer $INTEGRACLAW_API_KEY
 **Environment variables:**
 
 ```bash
-export INTEGRACLAW_URL="https://your-instance.com"
+export INTEGRACLAW_URL="https://integraclaw.dev"
 export INTEGRACLAW_API_KEY="ic_YOUR_KEY"
 ```
 
@@ -284,21 +344,20 @@ curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
 
 ### Troubleshooting
 
-1. **Check env vars are set:**
+1. **Environment variables not set?**
 
 ```bash
 echo "URL: $INTEGRACLAW_URL"
 echo "KEY: ${INTEGRACLAW_API_KEY:0:10}..."
 ```
 
-2. **Verify API key by listing connections:**
+If empty, follow the [Setup](#setup) instructions (Steps 1–3).
 
-```bash
-curl -s "$INTEGRACLAW_URL/api/v1/connections" \
-  -H "Authorization: Bearer $INTEGRACLAW_API_KEY"
-```
+2. **401 Unauthorized?** The API key is invalid or missing. Go to [https://integraclaw.dev/dashboard/api-keys](https://integraclaw.dev/dashboard/api-keys) to create a new one.
 
-3. **No connection for a service?** Ask the user to connect it through the Integraclaw dashboard. The agent cannot create connections.
+3. **404 No connection?** The user hasn't connected that service yet. Guide them to [https://integraclaw.dev/dashboard/connections](https://integraclaw.dev/dashboard/connections) and click "+ Connect" on the service they need.
+
+4. **Empty connections list `[]`?** No services connected. The user needs to connect at least one service through the dashboard (see [Setup Step 4](#step-4--connect-a-google-service)).
 
 ## Tips
 
