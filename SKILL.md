@@ -3,8 +3,8 @@ name: claw-connect
 description: |
   Connect to 40+ APIs (Google Workspace, Microsoft 365, Slack, HubSpot, Salesforce, Jira, Stripe, Notion, etc.) with managed OAuth.
   Use this skill when users want to interact with external services.
-  Security: The INTEGRACLAW_API_KEY authenticates with IntegraClaw but grants NO access to third-party services by itself. Each service requires explicit OAuth authorization by the user through IntegraClaw's dashboard. Access is strictly scoped to connections the user has authorized. Provided by IntegraClaw (https://integraclaw.dev).
-compatibility: Requires network access and valid IntegraClaw API key
+  Security: The INTEGRACLAW_API_KEY authenticates with Integraclaw but grants NO access to third-party services by itself. Each service requires explicit OAuth authorization by the user through Integraclaw's dashboard. Access is strictly scoped to connections the user has authorized. Provided by Integraclaw (https://integraclaw.dev).
+compatibility: Requires network access and valid Integraclaw API key
 metadata:
   author: integraclaw
   version: "2.0"
@@ -17,9 +17,9 @@ metadata:
 
 # Claw Connect
 
-Semantic actions for third-party APIs using managed OAuth connections, provided by [IntegraClaw](https://integraclaw.dev). IntegraClaw lets you call service actions through a single unified API.
+Semantic actions for third-party APIs using managed OAuth connections, provided by [Integraclaw](https://integraclaw.dev). Integraclaw lets you call service actions through a single unified API.
 
-IMPORTANT: Connections are managed by users through the IntegraClaw dashboard. The agent's role is to **list available connections** and **call actions** using the references for each service. The agent never manages OAuth flows, tokens, or connection setup.
+IMPORTANT: Connections are managed by users through the Integraclaw dashboard. The agent's role is to **list available connections** and **call actions** using the references for each service. The agent never manages OAuth flows, tokens, or connection setup.
 
 ## Quick Start
 
@@ -32,7 +32,7 @@ curl -s "$INTEGRACLAW_URL/api/v1/connections" \
 curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
   -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"provider":"google","service":"gmail","action":"send_email","params":{"to":"user@example.com","subject":"Hello!","body":"Sent via IntegraClaw"}}'
+  -d '{"provider":"google","service":"gmail","action":"send_email","params":{"to":"user@example.com","subject":"Hello!","body":"Sent via Integraclaw"}}'
 ```
 
 ## Base URL
@@ -43,7 +43,7 @@ $INTEGRACLAW_URL/api/v1
 
 ## Authentication
 
-All requests require the IntegraClaw API key in the Authorization header:
+All requests require the Integraclaw API key in the Authorization header:
 
 ```
 Authorization: Bearer $INTEGRACLAW_API_KEY
@@ -58,12 +58,12 @@ export INTEGRACLAW_API_KEY="ic_YOUR_KEY"
 
 ## How It Works
 
-1. **User connects services** through the IntegraClaw dashboard (OAuth or API key)
+1. **User connects services** through the Integraclaw dashboard (OAuth or API key)
 2. **Agent lists connections** via `GET /api/v1/connections` to see what's available
-3. **Agent calls actions** via `POST /api/v1/action` — IntegraClaw handles token management automatically
+3. **Agent calls actions** via `POST /api/v1/action` — Integraclaw handles token management automatically
 4. **Agent consults references** to know which actions exist and what params they accept
 
-The agent never manages OAuth flows, tokens, or connection setup. That's all handled by IntegraClaw.
+The agent never manages OAuth flows, tokens, or connection setup. That's all handled by Integraclaw.
 
 ## List Connections
 
@@ -407,7 +407,7 @@ curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
 curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
   -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"provider":"slack","service":"messaging","action":"send_message","params":{"channel":"C0123456789","text":"Hello from IntegraClaw!"}}'
+  -d '{"provider":"slack","service":"messaging","action":"send_message","params":{"channel":"C0123456789","text":"Hello from Integraclaw!"}}'
 ```
 
 ### HubSpot — Create Contact
@@ -461,7 +461,7 @@ curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
 curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
   -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"provider":"whatsapp","service":"messaging","action":"send_message","params":{"phone_number_id":"PHONE_NUMBER_ID","to":"5511999999999","text":"Hello from IntegraClaw!"}}'
+  -d '{"provider":"whatsapp","service":"messaging","action":"send_message","params":{"phone_number_id":"PHONE_NUMBER_ID","to":"5511999999999","text":"Hello from Integraclaw!"}}'
 ```
 
 ## Error Handling
@@ -470,7 +470,7 @@ curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
 |--------|---------|------------|
 | 400 | Invalid request, missing params, or unknown action | Check the reference for correct action name and required params |
 | 401 | Invalid or missing API key | Verify `INTEGRACLAW_API_KEY` is set correctly |
-| 404 | No active connection for provider/service | Ask the user to connect the service through the IntegraClaw dashboard |
+| 404 | No active connection for provider/service | Ask the user to connect the service through the Integraclaw dashboard |
 | 4xx/5xx | Passthrough error from the target API | Check the `error` field for details from the third-party API |
 
 ### Troubleshooting
@@ -489,7 +489,7 @@ curl -s "$INTEGRACLAW_URL/api/v1/connections" \
   -H "Authorization: Bearer $INTEGRACLAW_API_KEY"
 ```
 
-3. **No connection for a service?** Ask the user to connect it through the IntegraClaw dashboard. The agent cannot create connections.
+3. **No connection for a service?** Ask the user to connect it through the Integraclaw dashboard. The agent cannot create connections.
 
 ## Tips
 
@@ -510,7 +510,7 @@ curl -s "$INTEGRACLAW_URL/api/v1/connections" \
 ## Notes
 
 1. The `action` field in the request maps to the tool method as `{provider}_{service}_{action}`.
-2. IntegraClaw handles all OAuth token refresh automatically — the agent never deals with tokens.
+2. Integraclaw handles all OAuth token refresh automatically — the agent never deals with tokens.
 3. Use `connection_id` only when the user has multiple connections for the same service.
 4. If a 404 error occurs, the user needs to connect the service through the dashboard first. The agent cannot create connections.
-5. All native API docs are still relevant for understanding response formats — IntegraClaw returns the raw API response in the `data` field.
+5. All native API docs are still relevant for understanding response formats — Integraclaw returns the raw API response in the `data` field.

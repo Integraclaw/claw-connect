@@ -21,7 +21,7 @@ curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
     "params": {
       "phone_number_id": "PHONE_NUMBER_ID",
       "to": "5511999999999",
-      "text": "Hello from IntegraClaw!"
+      "text": "Hello from Integraclaw!"
     }
   }'
 ```

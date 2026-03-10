@@ -59,7 +59,7 @@ curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
     "params": {
       "team_id": "TEAM_ID",
       "channel_id": "CHANNEL_ID",
-      "message": "Hello from IntegraClaw!"
+      "message": "Hello from Integraclaw!"
     }
   }'
 ```

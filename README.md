@@ -13,16 +13,16 @@ curl -s "$INTEGRACLAW_URL/api/v1/connections" \
 curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
   -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"provider":"google","service":"gmail","action":"send_email","params":{"to":"user@example.com","subject":"Hello!","body":"Sent via IntegraClaw"}}'
+  -d '{"provider":"google","service":"gmail","action":"send_email","params":{"to":"user@example.com","subject":"Hello!","body":"Sent via Integraclaw"}}'
 ```
 
 ## How It Works
 
-1. **Users connect services** through the IntegraClaw dashboard (OAuth or API key)
+1. **Users connect services** through the Integraclaw dashboard (OAuth or API key)
 2. **Agent lists connections** — `GET /api/v1/connections`
 3. **Agent calls actions** — `POST /api/v1/action` (see [references/](references/) for each service)
 
-The agent never manages OAuth, tokens, or connection setup. IntegraClaw handles all token management automatically.
+The agent never manages OAuth, tokens, or connection setup. Integraclaw handles all token management automatically.
 
 ## Supported Services (40+)
 

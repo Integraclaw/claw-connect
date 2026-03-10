@@ -20,7 +20,7 @@ curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
     "action": "send_message",
     "params": {
       "channel": "C01234567",
-      "text": "Hello from IntegraClaw!"
+      "text": "Hello from Integraclaw!"
     }
   }'
 ```

@@ -237,7 +237,7 @@ curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
         {
           "type": "paragraph",
           "paragraph": {
-            "rich_text": [{"type": "text", "text": {"content": "Hello from IntegraClaw"}}]
+            "rich_text": [{"type": "text", "text": {"content": "Hello from Integraclaw"}}]
           }
         }
       ]
