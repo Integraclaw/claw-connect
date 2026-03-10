@@ -1,13 +1,13 @@
 ---
 name: claw-connect
 description: |
-  Connect to 40+ APIs (Google Workspace, Microsoft 365, Slack, HubSpot, Salesforce, Jira, Stripe, Notion, etc.) with managed OAuth.
-  Use this skill when users want to interact with external services.
+  Connect to Google Workspace APIs (Gmail, Calendar, Drive, Sheets, Docs, Meet, YouTube, and more) with managed OAuth.
+  Use this skill when users want to interact with Google services.
   Security: The INTEGRACLAW_API_KEY authenticates with Integraclaw but grants NO access to third-party services by itself. Each service requires explicit OAuth authorization by the user through Integraclaw's dashboard. Access is strictly scoped to connections the user has authorized. Provided by Integraclaw (https://integraclaw.dev).
 compatibility: Requires network access and valid Integraclaw API key
 metadata:
   author: integraclaw
-  version: "2.0"
+  version: "2.1"
   homepage: "https://integraclaw.dev"
   requires:
     env:
@@ -17,7 +17,7 @@ metadata:
 
 # Claw Connect
 
-Semantic actions for third-party APIs using managed OAuth connections, provided by [Integraclaw](https://integraclaw.dev). Integraclaw lets you call service actions through a single unified API.
+Semantic actions for Google Workspace APIs using managed OAuth connections, provided by [Integraclaw](https://integraclaw.dev). Integraclaw lets you call service actions through a single unified API.
 
 IMPORTANT: Connections are managed by users through the Integraclaw dashboard. The agent's role is to **list available connections** and **call actions** using the references for each service. The agent never manages OAuth flows, tokens, or connection setup.
 
@@ -179,110 +179,8 @@ curl -s "$INTEGRACLAW_URL/api/v1/tools" \
 | Play | `google-play` | list_reviews, get_review, reply_review |
 | Workspace Admin | `google-workspace-admin` | list_users, get_user, list_groups, get_group, list_group_members |
 
-### Microsoft 365
-
-| Service | App Name | Actions |
-|---------|----------|---------|
-| Outlook | `microsoft-outlook` | send_email, list_messages, search_messages, read_message, list_folders |
-| Calendar | `microsoft-calendar` | list_events, get_event, create_event, delete_event |
-| Teams | `microsoft-teams` | list_teams, list_channels, send_message, list_messages |
-| OneDrive | `microsoft-onedrive` | list_files, search_files, get_file, create_folder |
-
-### Notion
-
-| Service | App Name | Actions |
-|---------|----------|---------|
-| Pages | `notion-pages` | search, get, create, update |
-| Databases | `notion-databases` | query, get, create |
-| Blocks | `notion-blocks` | get_children, append, delete |
-
-### CRM & Sales
-
-| Provider | Service | App Name | Actions |
-|----------|---------|----------|---------|
-| HubSpot | CRM | `hubspot-crm` | list_contacts, get_contact, create_contact, search_contacts, list_deals, create_deal |
-| Salesforce | CRM | `salesforce-crm` | query, get_record, create_record, update_record |
-| Pipedrive | Deals | `pipedrive-deals` | list_deals, get_deal, create_deal, update_deal, search_deals |
-| Attio | CRM | `attio-crm` | list_objects, list_records, get_record |
-| ActiveCampaign | Contacts | `activecampaign-contacts` | list_contacts, get_contact, create_contact, search_contacts |
-| Kommo | Leads | `kommo-leads` | list, get, create, update |
-| Kommo | Contacts | `kommo-contacts` | list, get, create, update |
-| Kommo | Pipelines | `kommo-pipelines` | list, get, statuses |
-
-### Project Management & Tasks
-
-| Provider | Service | App Name | Actions |
-|----------|---------|----------|---------|
-| Jira | Issues | `jira-issues` | search, get_issue, create_issue, list_projects |
-| Asana | Tasks | `asana-tasks` | list_workspaces, list_projects, list_tasks, get_task, create_task, update_task |
-| Trello | Boards | `trello-boards` | list_boards, get_board, list_lists, list_cards, create_card |
-| Monday | Boards | `monday-boards` | list_boards, get_board, list_items, create_item |
-| ClickUp | Tasks | `clickup-tasks` | list, get, create, update, delete |
-| ClickUp | Spaces | `clickup-spaces` | list, get_lists, get_folders |
-| ClickUp | Workspaces | `clickup-workspaces` | list |
-| Basecamp | Projects | `basecamp-projects` | list_projects, get_project, list_todolists, create_todo |
-
-### Messaging & Communication
-
-| Provider | Service | App Name | Actions |
-|----------|---------|----------|---------|
-| Slack | Messaging | `slack-messaging` | send_message, list_channels, list_messages, search_messages |
-| WhatsApp | Messaging | `whatsapp-messaging` | send_message, send_template, get_media |
-| ClickSend | SMS | `clicksend-sms` | send_sms, list_sms_history |
-
-### Scheduling
-
-| Provider | Service | App Name | Actions |
-|----------|---------|----------|---------|
-| Calendly | Scheduling | `calendly-scheduling` | get_current_user, list_event_types, list_scheduled_events, get_scheduled_event, list_invitees |
-| Acuity | Scheduling | `acuity-scheduling` | list_appointments, list_appointment_types |
-| Cal.com | Scheduling | `calcom-scheduling` | list_event_types, list_bookings |
-
-### Finance & Payments
-
-| Provider | Service | App Name | Actions |
-|----------|---------|----------|---------|
-| Stripe | Payments | `stripe-payments` | list_charges, list_customers, get_customer, list_subscriptions |
-| QuickBooks | Accounting | `quickbooks-accounting` | query, get_customer, get_invoice, create_invoice |
-
-| Chargebee | Subscriptions | `chargebee-subscriptions` | list_subscriptions, list_customers |
-| ContaAzul | Customers | `contaazul-customers` | list, get, create, update |
-| ContaAzul | Products | `contaazul-products` | list, get, create, update |
-| ContaAzul | Sales | `contaazul-sales` | list, get, create |
-
-### Forms & Data
-
-| Provider | Service | App Name | Actions |
-|----------|---------|----------|---------|
-| Typeform | Forms | `typeform-forms` | list_forms, get_form, list_responses |
-| Airtable | Bases | `airtable-bases` | list_bases, list_records, get_record, create_records, update_records |
-| Baserow | Databases | `baserow-databases` | list_tables, list_rows |
-
-### Storage
-
-| Provider | Service | App Name | Actions |
-|----------|---------|----------|---------|
-| Box | Files | `box-files` | list_folder_items, get_file, search, create_folder |
-
-### Marketing & Outreach
-
-| Provider | Service | App Name | Actions |
-|----------|---------|----------|---------|
-| Apollo | Prospecting | `apollo-prospecting` | search_people, get_person, search_organizations |
-| Klaviyo | Campaigns | `klaviyo-campaigns` | list_campaigns, get_campaign, list_lists |
-| Brevo | Email | `brevo-email` | send_email, list_contacts, create_contact |
-| Beehiiv | Newsletters | `beehiiv-newsletters` | list_publications, list_subscribers |
-| ClickFunnels | Funnels | `clickfunnels-funnels` | list_workspaces, list_contacts |
-
-### Analytics
-
-| Provider | Service | App Name | Actions |
-|----------|---------|----------|---------|
-| CallRail | Calls | `callrail-calls` | list_calls |
-
 See [references/](references/) for detailed action guides per service:
 
-**Google Workspace:**
 - [Gmail](references/google-mail/README.md) — Send, list, search, read, draft
 - [Google Calendar](references/google-calendar/README.md) — Events, calendars, quick add
 - [Google Drive](references/google-drive/README.md) — Files, folders, search
@@ -300,50 +198,6 @@ See [references/](references/) for detailed action guides per service:
 - [Google Ads](references/google-ads/README.md) — Search, customers
 - [Google Play](references/google-play/README.md) — Reviews, replies
 - [Google Workspace Admin](references/google-workspace-admin/README.md) — Users, groups, members
-
-**Microsoft 365:**
-- [Outlook](references/outlook/README.md) — Send, list, search, read, folders
-- [Microsoft Calendar](references/microsoft-calendar/README.md) — Events, create, delete
-- [Microsoft Teams](references/microsoft-teams/README.md) — Teams, channels, messages
-- [OneDrive](references/one-drive/README.md) — Files, folders, search
-
-**Third-party (OAuth):**
-- [Notion](references/notion/README.md) — Pages, databases, blocks
-- [Slack](references/slack-messaging/README.md) — Send messages, channels, search
-- [HubSpot](references/hubspot-crm/README.md) — Contacts, deals, search
-- [Salesforce](references/salesforce-crm/README.md) — SOQL query, records CRUD
-- [Jira](references/jira-issues/README.md) — Issues, search, projects
-- [Calendly](references/calendly-scheduling/README.md) — Events, invitees
-- [Asana](references/asana-tasks/README.md) — Workspaces, projects, tasks
-- [Monday](references/monday-boards/README.md) — Boards, items
-- [Pipedrive](references/pipedrive-deals/README.md) — Deals, search
-- [Typeform](references/typeform-forms/README.md) — Forms, responses
-- [Airtable](references/airtable-bases/README.md) — Bases, records
-- [QuickBooks](references/quickbooks-accounting/README.md) — Query, invoices, customers
-
-- [Box](references/box-files/README.md) — Files, folders, search
-- [Stripe](references/stripe-payments/README.md) — Charges, customers, subscriptions
-- [Trello](references/trello-boards/README.md) — Boards, lists, cards
-- [WhatsApp](references/whatsapp-messaging/README.md) — Messages, templates
-- [ClickUp](references/clickup-tasks/README.md) — Tasks, spaces, workspaces
-- [ContaAzul](references/contaazul/README.md) — Customers, products, sales
-- [Kommo](references/kommo/README.md) — Leads, contacts, pipelines
-
-**Third-party (API Key):**
-- [ActiveCampaign](references/activecampaign-contacts/README.md) — Contacts, search
-- [Klaviyo](references/klaviyo-campaigns/README.md) — Campaigns, lists
-- [Apollo](references/apollo-prospecting/README.md) — People, organizations
-- [Brevo](references/brevo-email/README.md) — Transactional email, contacts
-- [Beehiiv](references/beehiiv-newsletters/README.md) — Publications, subscribers
-- [Baserow](references/baserow-databases/README.md) — Tables, rows
-- [Cal.com](references/calcom-scheduling/README.md) — Event types, bookings
-- [CallRail](references/callrail-calls/README.md) — Call tracking
-- [Chargebee](references/chargebee-subscriptions/README.md) — Subscriptions, customers
-- [ClickSend](references/clicksend-sms/README.md) — SMS, history
-- [ClickFunnels](references/clickfunnels-funnels/README.md) — Workspaces, contacts
-- [Attio](references/attio-crm/README.md) — Objects, records
-- [Acuity](references/acuity-scheduling/README.md) — Appointments
-- [Basecamp](references/basecamp-projects/README.md) — Projects, todolists
 
 ## Examples
 
@@ -392,76 +246,31 @@ curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
   -d '{"provider":"google","service":"sheets","action":"append_rows","params":{"spreadsheet_id":"SPREADSHEET_ID","range":"Sheet1!A1","values":[["Name","Email","Status"],["John","john@example.com","Active"]]}}'
 ```
 
-### Notion — Query Database
+### Google Drive — List Files
 
 ```bash
 curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
   -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"provider":"notion","service":"databases","action":"query","params":{"database_id":"DATABASE_ID","filter":{"property":"Status","select":{"equals":"Active"}},"page_size":50}}'
+  -d '{"provider":"google","service":"drive","action":"list_files","params":{"page_size":20}}'
 ```
 
-### Slack — Send Message
+### Google Contacts — Search Contacts
 
 ```bash
 curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
   -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"provider":"slack","service":"messaging","action":"send_message","params":{"channel":"C0123456789","text":"Hello from Integraclaw!"}}'
+  -d '{"provider":"google","service":"contacts","action":"search_contacts","params":{"query":"John","page_size":10}}'
 ```
 
-### HubSpot — Create Contact
+### Google Tasks — Create Task
 
 ```bash
 curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
   -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"provider":"hubspot","service":"crm","action":"create_contact","params":{"email":"john@example.com","firstname":"John","lastname":"Doe"}}'
-```
-
-### Salesforce — SOQL Query
-
-```bash
-curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
-  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"provider":"salesforce","service":"crm","action":"query","params":{"soql":"SELECT Id, Name, Email FROM Contact WHERE CreatedDate = LAST_N_DAYS:30 LIMIT 10"}}'
-```
-
-### Jira — Create Issue
-
-```bash
-curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
-  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"provider":"jira","service":"issues","action":"create_issue","params":{"project_key":"PROJ","summary":"Fix login bug","issue_type":"Bug","description":"Users cannot log in with SSO"}}'
-```
-
-### Stripe — List Customers
-
-```bash
-curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
-  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"provider":"stripe","service":"payments","action":"list_customers","params":{"limit":10,"email":"john@example.com"}}'
-```
-
-### Airtable — List Records
-
-```bash
-curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
-  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"provider":"airtable","service":"bases","action":"list_records","params":{"base_id":"appXXXXXXX","table_name":"Tasks","max_records":20}}'
-```
-
-### WhatsApp — Send Message
-
-```bash
-curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
-  -H "Authorization: Bearer $INTEGRACLAW_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"provider":"whatsapp","service":"messaging","action":"send_message","params":{"phone_number_id":"PHONE_NUMBER_ID","to":"5511999999999","text":"Hello from Integraclaw!"}}'
+  -d '{"provider":"google","service":"tasks","action":"create_task","params":{"task_list_id":"TASK_LIST_ID","title":"Review document","notes":"Review the Q1 report","due":"2026-03-15T00:00:00Z"}}'
 ```
 
 ## Error Handling

@@ -1,6 +1,6 @@
 # Claw Connect
 
-API gateway with managed auth. Connect your AI to Google Workspace, Microsoft 365, Slack, HubSpot, Salesforce, Jira, Stripe, Notion, and more with a single API key.
+API gateway with managed auth. Connect your AI to Google Workspace (Gmail, Calendar, Drive, Sheets, Docs, Meet, YouTube, and more) with a single API key.
 
 ## Quick Start
 
@@ -18,15 +18,17 @@ curl -s -X POST "$INTEGRACLAW_URL/api/v1/action" \
 
 ## How It Works
 
-1. **Users connect services** through the Integraclaw dashboard (OAuth or API key)
+1. **Users connect services** through the Integraclaw dashboard (OAuth)
 2. **Agent lists connections** — `GET /api/v1/connections`
 3. **Agent calls actions** — `POST /api/v1/action` (see [references/](references/) for each service)
 
 The agent never manages OAuth, tokens, or connection setup. Integraclaw handles all token management automatically.
 
-## Supported Services (40+)
+## Supported Services
 
-Google Workspace (17), Microsoft 365 (4), Notion (3), Slack, HubSpot, Salesforce, Jira, Calendly, Asana, Monday, Pipedrive, Typeform, Airtable, QuickBooks, Box, Stripe, Trello, WhatsApp, ClickUp, ContaAzul, Kommo, ActiveCampaign, Klaviyo, Apollo, Brevo, Beehiiv, Baserow, Cal.com, CallRail, Chargebee, ClickSend, ClickFunnels, Attio, Acuity, Basecamp.
+Google Workspace: Gmail, Calendar, Drive, Sheets, Docs, Slides, Forms, Tasks, Contacts, Meet, YouTube, Search Console, Analytics Admin, Analytics Data, Ads, Play, Workspace Admin.
+
+More providers coming soon.
 
 See [SKILL.md](SKILL.md) for the full table with app names and actions, and [references/](references/) for detailed action guides per service.
 
