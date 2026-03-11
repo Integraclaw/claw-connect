@@ -1,9 +1,6 @@
 ---
 name: claw-connect
-description: |
-  Connect to Google Workspace APIs (Gmail, Calendar, Drive, Sheets, Docs, Meet, YouTube, and more) with managed OAuth.
-  Use this skill when users want to interact with Google services.
-  Security: The INTEGRACLAW_API_KEY authenticates with Integraclaw but grants NO access to third-party services by itself. Each service requires explicit OAuth authorization by the user through Integraclaw's dashboard. Access is strictly scoped to connections the user has authorized. Provided by Integraclaw (https://integraclaw.dev).
+description: "Connect to Google Workspace APIs (Gmail, Calendar, Drive, Sheets, Docs, Meet, YouTube, and more) with managed OAuth. Use this skill when users want to interact with Google services. Security: The INTEGRACLAW_API_KEY authenticates with Integraclaw but grants NO access to third-party services by itself. Each service requires explicit OAuth authorization by the user through Integraclaw's dashboard. Access is strictly scoped to connections the user has authorized. Provided by Integraclaw (https://integraclaw.dev)."
 compatibility: Requires network access and valid Integraclaw API key
 metadata:
   author: integraclaw
